@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from flask_cors import CORS
 import logging
+import uuid  # Importing uuid to generate session IDs
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +21,7 @@ def save_user_choice():
     username = data.get('username')
     room_type = data.get('room_type')
     color = data.get('color')
+    session_id = str(uuid.uuid4())  # Generate a unique session ID
 
     if not username or not isinstance(username, str):
         logging.warning("Invalid or missing 'username' in request: %s", data)
@@ -37,15 +39,17 @@ def save_user_choice():
         result = user_choices_collection.insert_one({
             "username": username,
             "room_type": room_type,
-            "color": color
+            "color": color,
+            "session_id": session_id  # Store the session ID
         })
         logging.info("User choice saved successfully: %s", {
             "username": username, 
             "room_type": room_type, 
             "color": color, 
+            "session_id": session_id,
             "id": str(result.inserted_id)
         })
-        return jsonify({"message": "User choice saved successfully", "id": str(result.inserted_id)}), 201
+        return jsonify({"message": "User choice saved successfully", "id": str(result.inserted_id), "session_id": session_id}), 201
     except Exception as e:
         logging.error("Error saving user choice: %s", e)
         return jsonify({"error": "Error saving user choice", "details": str(e)}), 500
