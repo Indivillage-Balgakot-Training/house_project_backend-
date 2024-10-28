@@ -1,44 +1,42 @@
-from flask import Flask, request, jsonify
-from pymongo import MongoClient
-from flask_cors import CORS
-import logging
-import uuid  # Importing uuid to generate session IDs
+from flask import Flask, jsonify, redirect, url_for, send_from_directory
+from flask_pymongo import PyMongo
+from flask_cors import CORS  # Import CORS for cross-origin requests
+import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for all routes
 
-# MongoDB connection
-client = MongoClient('mongodb+srv://Balgakot_app_training:SBhQqTzY7Go7sEXJ@validationapp.63rbg.mongodb.net/Dev_training?retryWrites=true&w=majority') 
-db = client['Dev_training']
-user_choices_collection = db['user_choices']
+# MongoDB connection string
+app.config["MONGO_URI"] = "mongodb+srv://Balgakot_app_training:SBhQqTzY7Go7sEXJ@validationapp.63rbg.mongodb.net/Dev_training?retryWrites=true&w=majority"
+mongo = PyMongo(app)
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+@app.route('/', methods=['GET'])
+def home():
+    return redirect(url_for('get_houses'))
 
-@app.route('/api/user_choices', methods=['POST'])
-def save_user_choice():
-    data = request.json
-    room_type = data.get('room_type')
-    session_id = str(uuid.uuid4())  # Generate a unique session ID
+@app.route('/page.tsx', methods=['GET'])
+def page():
+    return send_from_directory(r'C:\Users\Acer 7\Desktop\House\House-Project\src\app', 'page.tsx')
 
-    if not room_type or not isinstance(room_type, str):
-        logging.warning("Invalid or missing 'room_type' in request: %s", data)
-        return jsonify({"error": "Room type must be a non-empty string"}), 400
+@app.route('/houses', methods=['GET'])
+def get_houses():
+    houses = mongo.db.houses.find()  # Fetch houses from MongoDB
+    house_list = [
+        {
+            'id': str(house['_id']),
+            'name': f"House Number {i + 1}",  # Sequential naming
+            'image': f"house {i + 1}.gallery.jpg",  # Make sure this matches the image filenames
+            'description': house.get('description', '')
+        }
+        for i, house in enumerate(houses)
+        if i < 4  # Limit to 4 houses
+    ]
+    return jsonify(house_list)
 
-    try:
-        result = user_choices_collection.insert_one({
-            "room_type": room_type,
-            "session_id": session_id  # Store the session ID
-        })
-        logging.info("User choice saved successfully: %s", {
-            "room_type": room_type, 
-            "session_id": session_id,
-            "id": str(result.inserted_id)
-        })
-        return jsonify({"message": "User choice saved successfully", "id": str(result.inserted_id), "session_id": session_id}), 201
-    except Exception as e:
-        logging.error("Error saving user choice: %s", e)
-        return jsonify({"error": "Error saving user choice", "details": str(e)}), 500
+@app.route('/houses/<string:house_id>/rooms', methods=['GET'])
+def get_rooms(house_id):
+    rooms = mongo.db.rooms.find({'house_id': house_id})  # Fetch rooms for the specific house
+    return jsonify([{'id': str(room['_id']), 'name': room['name'], 'color_options': room['color_options']} for room in rooms])
 
 if __name__ == '__main__':
-    app.run(debug=True)  # Set debug=False in production
+    app.run(debug=True)
