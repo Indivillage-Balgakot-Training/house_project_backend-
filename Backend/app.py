@@ -50,7 +50,21 @@ def get_kitchen_images():
         { 'name': 'Yellow', 'image': '/images/kitchenCabinet2.jpg', 'color': '#FFD700' },
         { 'name': 'Neon Pink', 'image': '/images/kitchenCabinet3.jpg', 'color': '#FF69B4' },
     ]
-    return jsonify(kitchen_images)
+    
+    # Example static list of wall color options
+    wall_images = [
+        { 'name': 'Pale Green', 'image': '/images/Wall1.jpg', 'color': '#b0c8bf' },
+        { 'name': 'Pale Olive', 'image': '/images/Wall2.jpg', 'color': '#dad8b9' },
+        { 'name': 'Warm Beige', 'image': '/images/Wall3.jpg', 'color': '#c8bca6' },
+    ]
+
+    # Combine both lists into a single response
+    combined_images = {
+        'cabinets': kitchen_images,
+        'walls': wall_images
+    }
+    
+    return jsonify(combined_images)
 
 if __name__ == '__main__':
     app.run(debug=True)
