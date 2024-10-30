@@ -1,54 +1,49 @@
 from flask_pymongo import PyMongo
-from pymongo.errors import DuplicateKeyError, PyMongoError
+from pymongo.errors import PyMongoError
 
 mongo = PyMongo()
 
-def get_next_sequence_id(sequence_name):
-    sequence_document = mongo.db.counters.find_one_and_update(
-        {'_id': sequence_name},
-        {'$inc': {'seq': 1}},
-        return_document=True
-    )
-    if sequence_document is None:
-        # If the sequence doesn't exist, initialize it
-        mongo.db.counters.insert_one({'_id': sequence_name, 'seq': 1})
-        return 1
-    return sequence_document['seq']
-
-class User:
-    # User model remains unchanged
-    pass
-
-class House:
+class UserSelection:
     @staticmethod
-    def insert(house_data):
+    def save_selection(session_id, house_id, house_name):
+        mongo.db.user_choices.update_one(
+            {'session_id': session_id},
+            {'$set': {
+                'house_id': house_id,
+                'house_name': house_name,
+                'rooms': []  # Initialize rooms list
+            }},
+            upsert=True
+        )
+
+    @staticmethod
+    def add_room_selection(session_id, room_id, room_name, wall_color, cabinet_color):
+        # Validate input
+        if not all([session_id, room_id, room_name, wall_color, cabinet_color]):
+            raise ValueError("All parameters must be provided and cannot be empty.")
+
         try:
-            house_id = get_next_sequence_id('house_id')
-            house_data['id'] = house_id  # Add custom ID to house data
-            return mongo.db.houses.insert_one(house_data)
-        except DuplicateKeyError:
-            print("Duplicate house ID error.")
-            return None
+            mongo.db.user_choices.update_one(
+                {'session_id': session_id, 'rooms.room_id': room_id},
+                {
+                    '$set': {
+                        'rooms.$.wall_color': wall_color,
+                        'rooms.$.cabinet_color': cabinet_color,
+                    },
+                    '$setOnInsert': {
+                        'rooms': {
+                            'room_id': room_id,
+                            'room_name': room_name,
+                            'wall_color': wall_color,
+                            'cabinet_color': cabinet_color
+                        }
+                    }
+                },
+                upsert=True
+            )
         except PyMongoError as e:
-            print(f"An error occurred while inserting the house: {e}")
-            return None
+            raise Exception(f"Database error: {str(e)}")
 
     @staticmethod
-    def all():
-        return list(mongo.db.houses.find())
-
-class Room:
-    @staticmethod
-    def filter_by(house_id):
-        return list(mongo.db.rooms.find({"house_id": house_id}))  # Convert cursor to a list
-
-    @staticmethod
-    def insert(room_data):
-        try:
-            return mongo.db.rooms.insert_one(room_data)
-        except DuplicateKeyError:
-            print("Duplicate room ID error.")
-            return None
-        except PyMongoError as e:
-            print(f"An error occurred while inserting the room: {e}")
-            return None
+    def get_selection(session_id):
+        return mongo.db.user_choices.find_one({'session_id': session_id})
