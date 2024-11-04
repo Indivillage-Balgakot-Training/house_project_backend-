@@ -105,12 +105,12 @@ def get_kitchen_images():
         {'name': 'Default', 'image': '/images/kitchen.jpg', 'color': '#FAF0E6'},
         {'name': 'Caramel', 'image': '/images/kitchenCabinet1.jpg', 'color': '#D2B48C'},
         {'name': 'Yellow', 'image': '/images/kitchenCabinet2.jpg', 'color': '#FFD700'},
-        {'name': 'Neon Pink', 'image': '/images/kitchenCabinet3.jpg', 'color': '#FF69B4'},
+        {'name': 'Neon Pink', 'image': '/images/kitchenCabinet3.jpg', 'color': '#E37383'},
     ]
     
     wall_images = [
         {'name': 'Pale Green', 'image': '/images/Wall1.jpg', 'color': '#b0c8bf'},
-        {'name': 'Pale Olive', 'image': '/images/Wall2.jpg', 'color': '#dad8b9'},
+        {'name': 'Pale Olive', 'image': '/images/Wall2.jpg', 'color': '#FFB6C1'},
         {'name': 'Warm Beige', 'image': '/images/Wall3.jpg', 'color': '#c8bca6'},
     ]
     
