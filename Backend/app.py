@@ -113,10 +113,16 @@ def get_kitchen_images():
         {'name': 'Pale Olive', 'image': '/images/Wall2.jpg', 'color': '#dad8b9'},
         {'name': 'Warm Beige', 'image': '/images/Wall3.jpg', 'color': '#c8bca6'},
     ]
+    
+    basin_images = [  
+        {'name': 'Stainless Steel', 'image': '/images/kitchen.jpg', 'color': '#C0C0C0'},
+     ]
+    
 
     combined_images = {
         'cabinets': kitchen_images,
-        'walls': wall_images
+        'walls': wall_images,
+        'basins': basin_images
     }
     
     return jsonify(combined_images)
