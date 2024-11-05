@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, redirect, url_for, request
+from flask import Flask, jsonify, redirect, url_for, request, make_response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 import uuid
@@ -8,6 +8,9 @@ CORS(app)
 
 app.config["MONGO_URI"] = "mongodb+srv://Balgakot_app_training:SBhQqTzY7Go7sEXJ@validationapp.63rbg.mongodb.net/Dev_training?retryWrites=true&w=majority"
 mongo = PyMongo(app)
+
+# Secret key for session management (needed to sign cookies)
+app.secret_key = 'your-secret-key-here'
 
 @app.route('/', methods=['GET'])
 def home():
@@ -37,10 +40,18 @@ def get_rooms(house_id):
         'image': room.get('image', '')
     } for room in rooms])
 
+def get_session_id():
+    """ Retrieve session ID from the cookie, or generate a new one if not found. """
+    session_id = request.cookies.get('session_id')
+    if not session_id:
+        # If no session_id in cookies, generate a new one
+        session_id = str(uuid.uuid4())
+    return session_id
+
 @app.route('/select-house', methods=['POST'])
 def select_house():
     data = request.get_json()
-    session_id = data.get('session_id') or str(uuid.uuid4())
+    session_id = get_session_id()  # Get session ID from cookie (or generate new one)
     house_id = data.get('house_id')
     house_name = data.get('house_name')
 
@@ -56,12 +67,18 @@ def select_house():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-    return jsonify({'session_id': session_id, 'house_id': house_id, 'house_name': house_name, 'rooms': []}), 201
+    # Create a response object to set the cookie
+    response = jsonify({'session_id': session_id, 'house_id': house_id, 'house_name': house_name, 'rooms': []})
+    
+    # Set the session_id cookie (expires in 1 day, can be adjusted as needed)
+    response.set_cookie('session_id', session_id, max_age=60*60*24, httponly=True)
+    
+    return response, 201
 
 @app.route('/select-room', methods=['POST'])
 def select_room():
     data = request.get_json()
-    session_id = data.get('session_id')
+    session_id = get_session_id()  # Get session ID from cookie
     room_id = data.get('room_id')
     room_name = data.get('room_name')
     wall_color = data.get('wall_color')
@@ -89,7 +106,6 @@ def select_room():
         return jsonify({'error': str(e)}), 500
 
     return jsonify({'message': 'Room selected successfully!'}), 201
-
 
 @app.route('/user/selections/<string:session_id>', methods=['GET'])
 def get_user_selections(session_id):
