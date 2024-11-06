@@ -6,6 +6,7 @@ import uuid
 app = Flask(__name__)
 CORS(app)
 
+# MongoDB connection URI
 app.config["MONGO_URI"] = "mongodb+srv://Balgakot_app_training:SBhQqTzY7Go7sEXJ@validationapp.63rbg.mongodb.net/Dev_training?retryWrites=true&w=majority"
 mongo = PyMongo(app)
 
@@ -16,104 +17,109 @@ app.secret_key = 'your-secret-key-here'
 def home():
     return redirect(url_for('get_houses'))
 
-def serialize_house(house):
-    return {
-        'id': str(house['_id']),
-        'name': house['name'],
-        'image': house.get('image', ''),
-        'description': house.get('description', '')
-    }
-
-@app.route('/houses', methods=['GET'])
-def get_houses():
-    houses = mongo.db.houses.find()
-    house_list = [serialize_house(house) for house in houses][:4]
-    return jsonify(house_list)
-
-@app.route('/houses/<string:house_id>/rooms', methods=['GET'])
-def get_rooms(house_id):
-    rooms = mongo.db.rooms.find({'house_id': house_id})
-    return jsonify([{
-        'id': str(room['_id']),
-        'name': room['name'],
-        'color_options': room['color_options'],
-        'image': room.get('image', '')
-    } for room in rooms])
-
+# Helper function to get the session_id from cookies (or generate one if missing)
 def get_session_id():
-    """ Retrieve session ID from the cookie, or generate a new one if not found. """
     session_id = request.cookies.get('session_id')
     if not session_id:
-        # If no session_id in cookies, generate a new one
+        # Generate a new session ID if not found in cookies
         session_id = str(uuid.uuid4())
     return session_id
 
-@app.route('/select-house', methods=['POST'])
-def select_house():
-    data = request.get_json()
-    session_id = get_session_id()  # Get session ID from cookie (or generate new one)
-    house_id = data.get('house_id')
-    house_name = data.get('house_name')
-
-    if not house_id or not house_name:
-        return jsonify({'error': 'House ID and name are required.'}), 400
-
+@app.route('/houses', methods=['GET'])
+def get_houses():
     try:
-        mongo.db.user_choices.update_one(
-            {'session_id': session_id},
-            {'$set': {'house_id': house_id, 'house_name': house_name, 'rooms': []}},
-            upsert=True
-        )
+        # Fetch houses from the database
+        houses = mongo.db.houses.find()
+        house_list = [
+            {'id': str(house['_id']), 'name': house['name'], 'image': house.get('image', ''), 'description': house.get('description', '')}
+            for house in houses
+        ]
+        return jsonify(house_list), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-    # Create a response object to set the cookie
-    response = jsonify({'session_id': session_id, 'house_id': house_id, 'house_name': house_name, 'rooms': []})
+@app.route('/houses/<string:house_id>/rooms', methods=['GET'])
+def get_rooms(house_id):
+    try:
+        # Fetch rooms associated with a specific house_id
+        rooms = mongo.db.rooms.find({'house_id': house_id})
+        room_list = [
+            {'id': str(room['_id']), 'name': room['name'], 'color_options': room['color_options'], 'image': room.get('image', '')}
+            for room in rooms
+        ]
+        return jsonify(room_list), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/select-house', methods=['POST'])
+def select_house():
+    data = request.get_json()  # Get the incoming data
+
+    session_id = get_session_id()  # Retrieve the session ID (either from cookie or newly generated)
+    house_id = data.get('house_id')  # Get the house_id from the data
+    house_name = data.get('house_name')  # Get the house_name from the data
+
+    # Check if house_id and house_name are provided
+    if not house_id or not house_name:
+        return jsonify({'error': 'House ID and house name are required.'}), 400
+
+    try:
+        # Store the house_name and house_id with the session_id
+        mongo.db.user_choices.update_one(
+            {'session_id': session_id},  # Check if this session already exists
+            {'$set': {'house_id': house_id, 'house_name': house_name}},  # Set house_id and house_name for this session
+            upsert=True  # If no session exists, create a new one
+        )
+        
+        # Log success
+        print(f"House selected: {house_name} with ID {house_id} for session {session_id}")
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    # Create response to set the session_id cookie
+    response = jsonify({'session_id': session_id, 'house_id': house_id, 'house_name': house_name})
     
-    # Set the session_id cookie (expires in 1 day, can be adjusted as needed)
+    # Set the session_id in the cookie for future requests
     response.set_cookie('session_id', session_id, max_age=60*60*24, httponly=True)
-    
-    return response, 201
+
+    return response, 201  # Return the response with status 201
 
 @app.route('/select-room', methods=['POST'])
 def select_room():
-    data = request.get_json()
-    session_id = get_session_id()  # Get session ID from cookie
-    room_id = data.get('room_id')
-    room_name = data.get('room_name')
-    wall_color = data.get('wall_color')
-    cabinet_color = data.get('cabinet_color')
+    data = request.get_json()  # Get the incoming data
+    print("Incoming data:", data)  # Log incoming request data for debugging
 
-    if not session_id or not room_id or not room_name or not wall_color or not cabinet_color:
-        return jsonify({'error': 'All fields are required.'}), 400
+    session_id = get_session_id()  # Retrieve the session ID from cookie (or newly generated)
+
+    room_type = data.get('room_type')  # Only accept room_type as the data
+
+    # Validate that room_type is provided
+    if not session_id or not room_type:
+        return jsonify({'error': 'Session ID and room_type are required.'}), 400
 
     try:
-        mongo.db.user_choices.update_one(
-            {'session_id': session_id},
+        # Update the user_choices collection with the house_name, house_id, and room_type
+        result = mongo.db.user_choices.update_one(
+            {'session_id': session_id},  # Find the user session by session_id
             {
-                '$addToSet': {
-                    'rooms': {
-                        'room_id': room_id,
-                        'room_name': room_name,
-                        'wall_color': wall_color,
-                        'cabinet_color': cabinet_color
-                    }
+                '$set': {  # Set the room_type, house_name, and house_id directly in the document
+                    'room_type': room_type  # Store only room_type along with existing house details
                 }
             },
-            upsert=True
+            upsert=True  # If no session exists, create a new one
         )
+
+        if result.modified_count == 0:
+            return jsonify({'error': 'Failed to update the room type data.'}), 500
+        
+        # Log success
+        print(f"Room type selected: {room_type} for session {session_id}")
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-    return jsonify({'message': 'Room selected successfully!'}), 201
-
-@app.route('/user/selections/<string:session_id>', methods=['GET'])
-def get_user_selections(session_id):
-    user_choice = mongo.db.user_choices.find_one({'session_id': session_id})
-    if user_choice:
-        return jsonify(user_choice), 200
-    else:
-        return jsonify({'message': 'No selections found for this session.'}), 404
+    return jsonify({'message': 'Room type selected successfully!'}), 201
 
 @app.route('/kitchen/images', methods=['GET'])
 def get_kitchen_images():
@@ -132,8 +138,7 @@ def get_kitchen_images():
     
     basin_images = [  
         {'name': 'Stainless Steel', 'image': '/images/kitchen.jpg', 'color': '#C0C0C0'},
-     ]
-    
+    ]
 
     combined_images = {
         'cabinets': kitchen_images,
