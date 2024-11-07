@@ -1,7 +1,7 @@
 import uuid
 from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
-from flask_cors import CORS  # Import CORS
+from flask_cors import CORS
 
 app = Flask(__name__)
 
@@ -14,34 +14,32 @@ mongo = PyMongo(app)
 
 @app.route('/houses', methods=['GET'])
 def get_houses():
-    # Fetch houses from the database
-    houses = mongo.db.houses.find()
-    houses_list = []
+    try:
+        houses = mongo.db.houses.find()
+        houses_list = []
 
-    # Fetch the selected rooms for each house from the 'user_selection' collection
-    user_selections = mongo.db.user_selection.find()
+        user_selections = mongo.db.user_selection.find()
 
-    # Create a dictionary for easy look-up of selected rooms by house_id
-    selected_rooms_by_house = {}
-    for selection in user_selections:
-        selected_rooms_by_house[selection['house_id']] = selection.get('selected_rooms', [])
+        selected_rooms_by_house = {}
+        for selection in user_selections:
+            selected_rooms_by_house[selection['house_id']] = selection.get('selected_rooms', [])
 
-    # Convert the MongoDB cursor to a list of dictionaries
-    for house in houses:
-        # If house_id is null, generate a UUID
-        house_id = house.get('house_id') or str(uuid.uuid4())
+        for house in houses:
+            house_id = house.get('house_id') or str(uuid.uuid4())
 
-        # Get the selected rooms for the house (if any)
-        selected_rooms = selected_rooms_by_house.get(house_id, [])
+            selected_rooms = selected_rooms_by_house.get(house_id, [])
 
-        houses_list.append({
-            'house_id': house_id,
-            'house_name': house.get('house_name', 'Unnamed House'),
-            'house_image': house.get('house_image', '/image2.jpg'),
-            'selected_rooms': selected_rooms  # Include the selected rooms
-        })
+            houses_list.append({
+                'house_id': house_id,
+                'house_name': house.get('house_name', 'Unnamed House'),
+                'house_image': house.get('house_image', '/image2.jpg'),
+                'selected_rooms': selected_rooms
+            })
 
-    return jsonify(houses_list)
+        return jsonify(houses_list)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/select-house', methods=['POST'])
 def select_house():
@@ -51,83 +49,93 @@ def select_house():
         house_name = data.get('house_name')
         selected_rooms = data.get('selected_rooms', [])
 
-        # Ensure house_id is not null; if it's missing, generate a UUID
         if not house_id:
-            house_id = str(uuid.uuid4())  # Generate a UUID if no house_id is provided
+            house_id = str(uuid.uuid4())
 
-        # Create the selection object
         selection = {
             "house_id": house_id,
             "house_name": house_name,
+            "selected_rooms": selected_rooms
         }
 
-        # Insert the selection into the user_selection collection
         mongo.db.user_selection.update_one(
-            {"house_id": house_id},  # Use house_id as the unique key
-            {"$set": selection},  # Update the selection with the new data
-            upsert=True  # If the house doesn't exist in the selection, insert it
+            {"house_id": house_id},
+            {"$set": selection},
+            upsert=True
         )
-        
+
         return jsonify({"message": f"House '{house_name}' selected successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/layout', methods=['GET'])
 def get_layout():
-    # Fetch layout from the database
-    layout = mongo.db.layout.find()  # Access the 'layout' collection
-    layout_list = []
-    
-    # Convert the MongoDB cursor to a list of dictionaries
-    for item in layout:
-        layout_list.append({
-            'house_id': item.get('house_id'),
-            'rooms_image': item.get('rooms_image', '/default_image.jpg'),  # Default to '/default_image.jpg' if missing
-            'rooms': item.get('rooms', []),  # Default to empty list if 'rooms' field is missing
-        })
-    
-    return jsonify(layout_list)
+    try:
+        layout = mongo.db.layout.find()
+        layout_list = []
+
+        for item in layout:
+            layout_list.append({
+                'house_id': item.get('house_id'),
+                'rooms_image': item.get('rooms_image', '/default_image.jpg'),
+                'rooms': item.get('rooms', []),
+            })
+
+        return jsonify(layout_list)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/select-room', methods=['POST'])
 def select_room():
     try:
-        # Get the data from the request
+        # Log the incoming data to verify what is being sent
         data = request.json
-        house_id = data.get('house_id')  # The ID of the house
-        selected_rooms = data.get('selected_rooms', [])  # List of rooms the user selects (default to empty list)
+        print(f"Received data: {data}")  # Log the received data
 
-        # Validate the data
+        house_id = data.get('house_id')
+        house_name = data.get('house_name')
+        selected_rooms = data.get('selected_rooms', [])
+
+        # Ensure house_id and selected_rooms are provided
         if not house_id:
             return jsonify({"error": "House ID is required"}), 400
 
         if not selected_rooms:
             return jsonify({"error": "At least one room must be selected"}), 400
 
-        # Fetch the current selection for the house (if any)
+        # Check if the house exists in user selection
         user_selection = mongo.db.user_selection.find_one({"house_id": house_id})
 
         if user_selection:
-            # If the house already exists in the selection, update the selected rooms
+            # Merge the new selected rooms with the current ones, removing duplicates
             current_selected_rooms = user_selection.get("selected_rooms", [])
-            updated_rooms = list(set(current_selected_rooms + selected_rooms))  # Combine and remove duplicates
+            updated_rooms = list(set(current_selected_rooms + selected_rooms))
 
-            # Update the selected rooms field with the new list of rooms
+            # Log the updated rooms before updating the database
+            print(f"Updated rooms for house {house_id}: {updated_rooms}")
+
+            # Update the user selection with the new list of selected rooms
             mongo.db.user_selection.update_one(
-                {"house_id": house_id},  # Match on the house_id
-                {"$set": {"selected_rooms": updated_rooms}},  # Update the selected_rooms field
+                {"house_id": house_id},
+                {"$set": {"selected_rooms": updated_rooms}},
             )
             return jsonify({"message": f"Rooms selected for House ID {house_id}: {', '.join(updated_rooms)}"}), 200
         else:
-            # If no selection exists for the house, create a new selection document
+            # If no existing selection for this house, create a new entry
             mongo.db.user_selection.insert_one({
                 "house_id": house_id,
-                "house_name": data.get('house_name', ''),  # Store the house_name in the new selection document
+                "house_name": house_name,  # Save house_name as well
                 "selected_rooms": selected_rooms
             })
             return jsonify({"message": f"Rooms selected for House ID {house_id}: {', '.join(selected_rooms)}"}), 201
 
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
