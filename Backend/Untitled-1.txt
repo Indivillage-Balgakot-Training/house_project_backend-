@@ -1,0 +1,8 @@
+Totally five  GET functions and two POST function .
+Post 1:House Selection  where the houses are fetched.
+Post 2: Room  Specification Selection where the rooms are fetched.
+Get 1: get session_id
+get2: get houses
+get 3:get rooms
+get 4: get rooms specification
+get 5: get user Selection
