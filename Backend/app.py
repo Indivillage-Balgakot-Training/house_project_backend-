@@ -29,146 +29,123 @@ def get_houses():
         # Ensure the user has a session ID
         session_id = get_session_id()
 
+        if not session_id:
+            # Return an error if no session ID is found
+            return jsonify({"error": "Session ID is missing"}), 400
+
+        # Fetch all houses from MongoDB
         houses = mongo.db.houses.find()
         houses_list = []
 
-        # Fetch user-specific selections based on session_id
+        # Fetch user-specific room selections based on session_id
         user_selections = mongo.db.user_selection.find({"session_id": session_id})
 
-        selected_rooms_by_house = {}
-        for selection in user_selections:
-            selected_rooms_by_house[selection['house_id']] = selection.get('selected_rooms', [])
+        # Create a dictionary of selected rooms per house for the user
+        selected_rooms_by_house = {selection['house_id']: selection.get('selected_rooms', []) for selection in user_selections}
 
         for house in houses:
-            house_id = house.get('house_id') or str(uuid.uuid4())
+            house_id = house.get('house_id') or str(uuid.uuid4())  # Generate a new UUID if missing
 
+            # Get selected rooms for the current house, defaulting to an empty list if none
             selected_rooms = selected_rooms_by_house.get(house_id, [])
 
+            # Build the house response object
             houses_list.append({
                 'house_id': house_id,
                 'house_name': house.get('house_name', 'Unnamed House'),
                 'house_image': house.get('house_image', '/image2.jpg'),
-                'selected_rooms': selected_rooms
             })
 
+        # Return the list of houses
         return jsonify(houses_list)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
+    except Exception as e:
+        # Return a detailed error message
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @app.route('/select-house', methods=['POST'])
 def select_house():
     try:
-        # Ensure the user has a session ID
-        session_id = get_session_id()
+        # Get session ID from the user's session
+        session_id = get_session_id()  # This assumes you have a method to fetch the session ID
 
-        data = request.json
+        # Get house details from the request body
+        data = request.get_json()
         house_id = data.get('house_id')
         house_name = data.get('house_name')
-        selected_rooms = data.get('selected_rooms', [])
 
-        if not house_id:
-            house_id = str(uuid.uuid4())
-
-        # Prepare the selection data
-        selection = {
+        # Respond with confirmation
+        return jsonify({
+            "message": "House selected successfully",
+            "session_id": session_id,
             "house_id": house_id,
-            "house_name": house_name,
-            "selected_rooms": selected_rooms,
-            "session_id": session_id  # Store the session ID for the user
-        }
-
-        # Check if the house and session already exist
-        existing_selection = mongo.db.user_selection.find_one({"house_id": house_id, "session_id": session_id})
-
-        if existing_selection:
-            # If record exists, update it with the new selected_rooms
-            mongo.db.user_selection.update_one(
-                {"house_id": house_id, "session_id": session_id},
-                {"$set": selection},  # Update the house selection data
-            )
-            return jsonify({"message": f"House '{house_name}' updated successfully!"}), 200
-        else:
-            # If no record exists, insert a new one
-            mongo.db.user_selection.insert_one(selection)
-            return jsonify({"message": f"House '{house_name}' selected successfully!"}), 201
+            "house_name": house_name
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-@app.route('/layout', methods=['GET'])
-def get_layout():
+    
+@app.route('/rooms/<house_id>/<house_name>', methods=['GET'])
+def get_rooms(house_id, house_name):
     try:
-        # Ensure the user has a session ID
-        session_id = get_session_id()
+        # Fetch house layout based on house_id and house_name
+        house_layout = mongo.db.layout.find_one({"house_id": house_id, "house_name": house_name})
+        
+        if not house_layout:
+            return jsonify({"error": "House layout not found"}), 404
+        
+        rooms_data = house_layout.get('rooms', [])
+        rooms_image = house_layout.get('rooms_image', '/image2.jpg')  # Default image if none provided
 
-        layout = mongo.db.layout.find()
-        layout_list = []
+        return jsonify({
+            "rooms_image": rooms_image,
+            "rooms": rooms_data
+        })
 
-        for item in layout:
-            layout_list.append({
-                'house_id': item.get('house_id'),
-                'rooms_image': item.get('rooms_image', '/default_image.jpg'),
-                'rooms': item.get('rooms', []),
-            })
-
-        return jsonify(layout_list)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/select-room', methods=['POST'])
 def select_room():
     try:
-        # Ensure the user has a session ID
+        # Get session ID from the user's session
         session_id = get_session_id()
 
-        # Log the incoming data to verify what is being sent
-        data = request.json
-        print(f"Received data: {data}")  # Log the received data
-
+        # Get the room details from the request body
+        data = request.get_json()
         house_id = data.get('house_id')
-        house_name = data.get('house_name')
-        selected_rooms = data.get('selected_rooms', [])
+        session_id = data.get('session_id')  # Make sure we get session_id from request body if it's passed
+        selected_rooms = data.get('selected_rooms')
 
-        # Ensure house_id and selected_rooms are provided
-        if not house_id:
-            return jsonify({"error": "House ID is required"}), 400
+        if not house_id or not session_id or not selected_rooms:
+            return jsonify({"error": "Missing house_id, session_id, or selected_rooms"}), 400
 
-        if not selected_rooms:
-            return jsonify({"error": "At least one room must be selected"}), 400
+        # Use MongoDB update with $addToSet to prevent duplicates in the selected_rooms array
+        result = mongo.db.user_selection.update_one(
+            {'session_id': session_id, 'house_id': house_id},  # Find document by session_id and house_id
+            {'$addToSet': {'selected_rooms': {'$each': selected_rooms}}},  # Add new room(s) without duplicates
+            upsert=True  # Insert the document if it doesn't exist
+        )
 
-        # Check if the house exists in user selection
-        user_selection = mongo.db.user_selection.find_one({"house_id": house_id, "session_id": session_id})
-
-        if user_selection:
-            # Merge the new selected rooms with the current ones, removing duplicates
-            current_selected_rooms = user_selection.get("selected_rooms", [])
-            updated_rooms = list(set(current_selected_rooms + selected_rooms))
-
-            # Log the updated rooms before updating the database
-            print(f"Updated rooms for house {house_id}: {updated_rooms}")
-
-            # Update the user selection with the new list of selected rooms
-            mongo.db.user_selection.update_one(
-                {"house_id": house_id, "session_id": session_id},
-                {"$set": {"selected_rooms": updated_rooms}},  # Update the rooms
-            )
-            return jsonify({"message": f"Rooms selected for House ID {house_id}: {', '.join(updated_rooms)}"}), 200
+        # Check result of MongoDB operation
+        if result.matched_count == 0:
+            print(f"New document created for session_id {session_id} and house_id {house_id}")
         else:
-            # If no existing selection for this house, create a new entry
-            mongo.db.user_selection.insert_one({
-                "house_id": house_id,
-                "house_name": house_name,  # Save house_name as well
-                "selected_rooms": selected_rooms,
-                "session_id": session_id,  # Store the session_id for the user
-            })
-            return jsonify({"message": f"Rooms selected for House ID {house_id}: {', '.join(selected_rooms)}"}), 201
+            print(f"Document updated for session_id {session_id} and house_id {house_id}")
+
+        return jsonify({
+            "message": "Room selected successfully",
+            "session_id": session_id,
+            "house_id": house_id,
+            "selected_rooms": selected_rooms
+        })
 
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"Error inserting data into MongoDB: {str(e)}")  # Log the error
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
 
 
 @app.route('/kitchen-data', methods=['GET'])
