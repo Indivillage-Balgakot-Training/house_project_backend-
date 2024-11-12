@@ -22,7 +22,6 @@ def get_session_id():
         session['session_id'] = str(uuid.uuid4())  # Create a new session ID if it doesn't exist
     return session['session_id']
 
-
 @app.route('/houses', methods=['GET'])
 def get_houses():
     try:
@@ -49,20 +48,19 @@ def get_houses():
             # Get selected rooms for the current house, defaulting to an empty list if none
             selected_rooms = selected_rooms_by_house.get(house_id, [])
 
-            # Build the house response object
+            # Build the house response object including the description
             houses_list.append({
                 'house_id': house_id,
                 'house_name': house.get('house_name'),
                 'house_image': house.get('house_image', '/image2.jpg'),
+                'description': house.get('description', '')  # Add description here
             })
 
-        # Return the list of houses
+        # Return the list of houses with descriptions
         return jsonify(houses_list)
 
     except Exception as e:
-        # Return a detailed error message
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-
+        return jsonify({"error": str(e)}), 500
 @app.route('/select-house', methods=['POST'])
 def select_house():
     try:
