@@ -52,7 +52,7 @@ def get_houses():
             # Build the house response object
             houses_list.append({
                 'house_id': house_id,
-                'house_name': house.get('house_name', 'Unnamed House'),
+                'house_name': house.get('house_name'),
                 'house_image': house.get('house_image', '/image2.jpg'),
             })
 
@@ -72,24 +72,23 @@ def select_house():
         # Get house details from the request body
         data = request.get_json()
         house_id = data.get('house_id')
-        house_name = data.get('house_name')
 
         # Respond with confirmation
         return jsonify({
             "message": "House selected successfully",
             "session_id": session_id,
             "house_id": house_id,
-            "house_name": house_name
+
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route('/rooms/<house_id>/<house_name>', methods=['GET'])
-def get_rooms(house_id, house_name):
+@app.route('/rooms/<house_id>', methods=['GET'])
+def get_rooms(house_id,):
     try:
         # Fetch house layout based on house_id and house_name
-        house_layout = mongo.db.layout.find_one({"house_id": house_id, "house_name": house_name})
+        house_layout = mongo.db.layout.find_one({"house_id": house_id, })
         
         if not house_layout:
             return jsonify({"error": "House layout not found"}), 404
