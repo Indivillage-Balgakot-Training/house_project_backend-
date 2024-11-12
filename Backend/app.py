@@ -147,7 +147,7 @@ def select_room():
 
 
 
-@app.route('/kitchen-data', methods=['GET'])
+@app.route('/room-data', methods=['GET'])
 def get_kitchen_data():
     try:
         # Ensure the user has a session ID
