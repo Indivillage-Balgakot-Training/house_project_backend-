@@ -110,38 +110,56 @@ def select_room():
         # Get session ID from the user's session
         session_id = get_session_id()
 
-        # Get the room details from the request body
+        # Get the room details and color selections from the request body
         data = request.get_json()
         house_id = data.get('house_id')
-        session_id = data.get('session_id')  # Make sure we get session_id from request body if it's passed
+        session_id_from_request = data.get('session_id')  # session_id should be passed from the request body
         selected_rooms = data.get('selected_rooms')
+        cabinet_colors = data.get('cabinet_colors', [])  # Default to empty list if no colors provided
+        wall_colors = data.get('wall_colors', [])
+        basin_colors = data.get('basin_colors', [])
 
-        if not house_id or not session_id or not selected_rooms:
+        # Check if house_id, session_id, and selected_rooms are provided
+        if not house_id or not session_id_from_request or not selected_rooms:
             return jsonify({"error": "Missing house_id, session_id, or selected_rooms"}), 400
 
-        # Use MongoDB update with $addToSet to prevent duplicates in the selected_rooms array
+        # Prepare the update data
+        update_data = {
+            'selected_rooms': selected_rooms,
+            'cabinet_colors': cabinet_colors,
+            'wall_colors': wall_colors,
+            'basin_colors': basin_colors
+        }
+
+        # Use MongoDB update with $set to overwrite the existing document
         result = mongo.db.user_selection.update_one(
-            {'session_id': session_id, 'house_id': house_id},  # Find document by session_id and house_id
-            {'$addToSet': {'selected_rooms': {'$each': selected_rooms}}},  # Add new room(s) without duplicates
+            {'session_id': session_id_from_request, 'house_id': house_id},  # Find document by session_id and house_id
+            {'$set': update_data},  # Update the document with selected rooms and colors
             upsert=True  # Insert the document if it doesn't exist
         )
 
         # Check result of MongoDB operation
         if result.matched_count == 0:
-            print(f"New document created for session_id {session_id} and house_id {house_id}")
+            print(f"New document created for session_id {session_id_from_request} and house_id {house_id}")
         else:
-            print(f"Document updated for session_id {session_id} and house_id {house_id}")
+            print(f"Document updated for session_id {session_id_from_request} and house_id {house_id}")
 
+        # Respond with the updated data
         return jsonify({
-            "message": "Room selected successfully",
-            "session_id": session_id,
+            "message": "Room and color selections saved successfully",
+            "session_id": session_id_from_request,
             "house_id": house_id,
-            "selected_rooms": selected_rooms
+            "selected_rooms": selected_rooms,
+            "cabinet_colors": cabinet_colors,
+            "wall_colors": wall_colors,
+            "basin_colors": basin_colors
         })
 
     except Exception as e:
         print(f"Error inserting data into MongoDB: {str(e)}")  # Log the error
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+
 
 
 
