@@ -61,6 +61,7 @@ def get_houses():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+        
 @app.route('/select-house', methods=['POST'])
 def select_house():
     try:
@@ -82,6 +83,7 @@ def select_house():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+    
 @app.route('/rooms/<house_id>', methods=['GET'])
 def get_rooms(house_id,):
     try:
@@ -98,6 +100,36 @@ def get_rooms(house_id,):
             "rooms_image": rooms_image,
             "rooms": rooms_data
         })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/room-data', methods=['GET'])
+def get_kitchen_data():
+    try:
+        # Ensure the user has a session ID
+        session_id = get_session_id()
+
+        # Get room_name (e.g., 'Kitchen') from query parameters
+        room_name = request.args.get('room_name', 'Kitchen')  # Default to 'Kitchen' if no room_name is provided
+
+        # Fetch the room data for the specified room_name
+        room_data = mongo.db.rooms.find_one({"room_name": room_name})
+
+        # If room is found, return its data
+        if room_data:
+            kitchen_data = {
+                "room_name": room_data["room_name"],
+                "images": room_data["images"],
+                "cabinet_colors": room_data["images"][0].get("cabinet_colors", []),
+                "wall_colors": room_data["images"][0].get("wall_colors", []),
+                "basin_colors": room_data["images"][0].get("basin_colors", [])
+            }
+            return jsonify(kitchen_data), 200
+        else:
+            # Use an f-string for string formatting (this is the correct approach)
+            return jsonify({"error": f"{room_name} data not found"}), 404
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -159,38 +191,6 @@ def select_room():
         print(f"Error inserting data into MongoDB: {str(e)}")  # Log the error
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
-
-
-
-
-@app.route('/room-data', methods=['GET'])
-def get_kitchen_data():
-    try:
-        # Ensure the user has a session ID
-        session_id = get_session_id()
-
-        # Get room_name (e.g., 'Kitchen') from query parameters
-        room_name = request.args.get('room_name', 'Kitchen')  # Default to 'Kitchen' if no room_name is provided
-
-        # Fetch the room data for the specified room_name
-        room_data = mongo.db.rooms.find_one({"room_name": room_name})
-
-        # If room is found, return its data
-        if room_data:
-            kitchen_data = {
-                "room_name": room_data["room_name"],
-                "images": room_data["images"],
-                "cabinet_colors": room_data["images"][0].get("cabinet_colors", []),
-                "wall_colors": room_data["images"][0].get("wall_colors", []),
-                "basin_colors": room_data["images"][0].get("basin_colors", [])
-            }
-            return jsonify(kitchen_data), 200
-        else:
-            # Use an f-string for string formatting (this is the correct approach)
-            return jsonify({"error": f"{room_name} data not found"}), 404
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
