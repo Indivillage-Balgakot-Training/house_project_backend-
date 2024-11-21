@@ -104,11 +104,10 @@ def get_rooms(house_id,):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
 @app.route('/room-data', methods=['GET'])
 def get_kitchen_data():
     try:
-        # Ensure the user has a session ID
+        # Ensure the user has a session ID (you already have this, so we keep it)
         session_id = get_session_id()
 
         # Get room_name (e.g., 'Kitchen') from query parameters
@@ -119,19 +118,21 @@ def get_kitchen_data():
 
         # If room is found, return its data
         if room_data:
+            # Extract necessary data
             kitchen_data = {
-                "room_name": room_data["room_name"],
-                "images": room_data["images"],
-                "cabinet_colors": room_data["images"][0].get("cabinet_colors", []),
-                "wall_colors": room_data["images"][0].get("wall_colors", []),
-                "basin_colors": room_data["images"][0].get("basin_colors", [])
+                "room_name": room_data.get("room_name"),
+                "images": room_data.get("images", []),
+                "cabinet_colors": room_data.get("images", [{}])[0].get("cabinet_colors", []),
+                "wall_colors": room_data.get("images", [{}])[0].get("wall_colors", []),
+                "basin_colors": room_data.get("images", [{}])[0].get("basin_colors", [])
             }
             return jsonify(kitchen_data), 200
         else:
-            # Use an f-string for string formatting (this is the correct approach)
+            # Return a 404 error if the room data is not found
             return jsonify({"error": f"{room_name} data not found"}), 404
 
     except Exception as e:
+        # Handle any unexpected errors
         return jsonify({"error": str(e)}), 500
 
 
