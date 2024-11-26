@@ -113,36 +113,62 @@ def get_rooms(house_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+
 @app.route('/room-data', methods=['GET'])
-def get_kitchen_data():
+def get_room_data():
     try:
-        # Ensure the user has a session ID (you already have this, so we keep it)
+        # Ensure the user has a session ID
         session_id = get_session_id()
 
-        # Get room_name (e.g., 'Kitchen') from query parameters
-        room_name = request.args.get('room_name', 'Kitchen')  # Default to 'Kitchen' if no room_name is provided
+        # Get room_name and house_id from query parameters
+        room_name = request.args.get('room_name')
+        house_id = request.args.get('house_id')
 
-        # Fetch the room data for the specified room_name
-        room_data = mongo.db.rooms.find_one({"room_name": room_name})
+        if not house_id or not room_name:
+            app.logger.warning(f"Missing parameters: house_id={house_id}, room_name={room_name}")
+            return jsonify({"error": "house_id and room_name are required parameters"}), 400
 
-        # If room is found, return its data
+        # Log the received parameters for debugging
+        app.logger.info(f"Received request with house_id: {house_id}, room_name: {room_name}")
+
+        # Fetch room data from the database
+        room_data = mongo.db.rooms.find_one({"house_id": house_id, "rooms.room_name": room_name})
+
+        # If room is found, process the room data
         if room_data:
-            # Extract necessary data
-            kitchen_data = {
-                "room_name": room_data.get("room_name"),
-                "images": room_data.get("images", []),
-                "cabinet_colors": room_data.get("images", [{}])[0].get("cabinet_colors", []),
-                "wall_colors": room_data.get("images", [{}])[0].get("wall_colors", []),
-                "basin_colors": room_data.get("images", [{}])[0].get("basin_colors", [])
-            }
-            return jsonify(kitchen_data), 200
+            # Find the specific room data by room_name
+            room = next((r for r in room_data.get("rooms", []) if r["room_name"] == room_name), None)
+
+            if room:
+                # Safely extract the kitchen data from the room
+                room_images = room.get("images", [])
+                
+                # Handle the case where images might not be available or are empty
+                if room_images:
+                    kitchen_image_data = room_images[0]
+                else:
+                    kitchen_image_data = {}
+
+                kitchen_data = {
+                    "room_name": room.get("room_name"),
+                    "images": room_images,
+                    "cabinet_colors": kitchen_image_data.get("cabinet_colors", []),
+                    "wall_colors": kitchen_image_data.get("wall_colors", []),
+                    "basin_colors": kitchen_image_data.get("basin_colors", []),
+                }
+
+                return jsonify(kitchen_data), 200
+            else:
+                app.logger.error(f"Room '{room_name}' not found in house '{house_id}'")
+                return jsonify({"error": f"Room '{room_name}' not found in house '{house_id}'"}), 404
         else:
-            # Return a 404 error if the room data is not found
-            return jsonify({"error": f"{room_name} data not found"}), 404
+            app.logger.error(f"House '{house_id}' or room '{room_name}' not found in the database")
+            return jsonify({"error": f"House '{house_id}' or room '{room_name}' not found"}), 404
 
     except Exception as e:
-        # Handle any unexpected errors
+        app.logger.error(f"Unexpected error: {e}")
         return jsonify({"error": str(e)}), 500
+
 
    
 
