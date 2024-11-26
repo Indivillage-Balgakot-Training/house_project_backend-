@@ -1,24 +1,35 @@
 import uuid
 import os
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request, session, make_response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
+from datetime import timedelta
 
 app = Flask(__name__)
 
-# Set the secret key to enable session management
+# Set the secret key to enable session management (cookies)
 app.secret_key = os.urandom(24)  # Secure random key for session encryption
 
-# Enable CORS for all domains (or you can specify the frontend URL like 'http://localhost:3000')
-CORS(app)
+# Enable CORS with credentials to allow session cookies to be sent
+CORS(app, supports_credentials=True)  # This ensures cookies can be sent cross-domain
 
 # MongoDB connection setup
 app.config["MONGO_URI"] = "mongodb+srv://Balgakot_app_training:SBhQqTzY7Go7sEXJ@validationapp.63rbg.mongodb.net/Dev_training?retryWrites=true&w=majority"
 mongo = PyMongo(app)
 
-# Ensure that each user has a session ID
+# Session configurations to ensure persistence across requests
+app.config.update(
+    SESSION_COOKIE_NAME='session_id',  # Cookie name for the session
+    SESSION_COOKIE_HTTPONLY=True,  # Prevent JavaScript access to the session cookie
+    PERMANENT_SESSION_LIFETIME=timedelta(days=30),  # Set session expiration to 30 days
+    SESSION_COOKIE_DOMAIN='.localhost',  # Allow the session cookie to be used across subdomains of localhost
+    SESSION_COOKIE_SAMESITE='None'  # Required for cross-origin requests (set to 'None' for cross-origin cookies)
+)
+
+# Ensure that each user has a session ID stored in cookies
 def get_session_id():
     if 'session_id' not in session:
+        session.permanent = True  # Make session permanent (so it doesn't expire on browser close)
         session['session_id'] = str(uuid.uuid4())  # Create a new session ID if it doesn't exist
     return session['session_id']
 
@@ -52,8 +63,8 @@ def get_houses():
             houses_list.append({
                 'house_id': house_id,
                 'house_name': house.get('house_name'),
-                'house_image': house.get('house_image', '/image2.jpg'),
-                'description': house.get('description', '')  # Add description here
+                'house_image': house.get('house_image',),
+                'description': house.get('description',)  # Add description here
             })
 
         # Return the list of houses with descriptions
@@ -61,7 +72,7 @@ def get_houses():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-        
+
 @app.route('/select-house', methods=['POST'])
 def select_house():
     try:
@@ -77,15 +88,13 @@ def select_house():
             "message": "House selected successfully",
             "session_id": session_id,
             "house_id": house_id,
-
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-    
+
 @app.route('/rooms/<house_id>', methods=['GET'])
-def get_rooms(house_id,):
+def get_rooms(house_id):
     try:
         # Fetch house layout based on house_id and house_name
         house_layout = mongo.db.layout.find_one({"house_id": house_id, })
@@ -94,7 +103,7 @@ def get_rooms(house_id,):
             return jsonify({"error": "House layout not found"}), 404
         
         rooms_data = house_layout.get('rooms', [])
-        rooms_image = house_layout.get('rooms_image', '/image2.jpg')  # Default image if none provided
+        rooms_image = house_layout.get('rooms_image',)  # Default image if none provided
 
         return jsonify({
             "rooms_image": rooms_image,
@@ -103,39 +112,6 @@ def get_rooms(house_id,):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-@app.route('/room-data', methods=['GET'])
-def get_kitchen_data():
-    try:
-        # Ensure the user has a session ID (you already have this, so we keep it)
-        session_id = get_session_id()
-
-        # Get room_name (e.g., 'Kitchen') from query parameters
-        room_name = request.args.get('room_name', 'Kitchen')  # Default to 'Kitchen' if no room_name is provided
-
-        # Fetch the room data for the specified room_name
-        room_data = mongo.db.rooms.find_one({"room_name": room_name})
-
-        # If room is found, return its data
-        if room_data:
-            # Extract necessary data
-            kitchen_data = {
-                "room_name": room_data.get("room_name"),
-                "images": room_data.get("images", []),
-                "cabinet_colors": room_data.get("images", [{}])[0].get("cabinet_colors", []),
-                "wall_colors": room_data.get("images", [{}])[0].get("wall_colors", []),
-                "basin_colors": room_data.get("images", [{}])[0].get("basin_colors", [])
-            }
-            return jsonify(kitchen_data), 200
-        else:
-            # Return a 404 error if the room data is not found
-            return jsonify({"error": f"{room_name} data not found"}), 404
-
-    except Exception as e:
-        # Handle any unexpected errors
-        return jsonify({"error": str(e)}), 500
-
-
 
 @app.route('/select-room', methods=['POST'])
 def select_room():
@@ -191,8 +167,6 @@ def select_room():
     except Exception as e:
         print(f"Error inserting data into MongoDB: {str(e)}")  # Log the error
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -6,3 +6,8 @@ get2: get houses
 get 3:get rooms
 get 4: get rooms specification
 get 5: get user Selection
+
+
+Update till Wednesday
+we update the session id driven by cookie
+get rid of all hardcoded in frontend all the data to be driven by backend.
