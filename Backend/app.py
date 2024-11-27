@@ -19,11 +19,12 @@ mongo = PyMongo(app)
 
 # Session configurations to ensure persistence across requests
 app.config.update(
-    SESSION_COOKIE_NAME='session_id',  # Cookie name for the session
-    SESSION_COOKIE_HTTPONLY=True,  # Prevent JavaScript access to the session cookie
-    PERMANENT_SESSION_LIFETIME=timedelta(days=30),  # Set session expiration to 30 days
-    SESSION_COOKIE_DOMAIN='.localhost',  # Allow the session cookie to be used across subdomains of localhost
-    SESSION_COOKIE_SAMESITE='None'  # Required for cross-origin requests (set to 'None' for cross-origin cookies)
+    SESSION_COOKIE_NAME='session_id',  # Name of the session cookie
+    SESSION_COOKIE_HTTPONLY=True,  # Make the cookie accessible only to the server
+    PERMANENT_SESSION_LIFETIME=timedelta(days=30),  # Session expiry
+    SESSION_COOKIE_DOMAIN='.localhost',  # Domain for cross-subdomain cookies
+    SESSION_COOKIE_SAMESITE='None',  # Allow cross-origin requests
+    SESSION_COOKIE_SECURE=False  # Disable secure flag for localhost (set to True for HTTPS)
 )
 
 # Ensure that each user has a session ID stored in cookies
@@ -76,7 +77,7 @@ def get_houses():
 @app.route('/select-house', methods=['POST'])
 def select_house():
     try:
-        # Get session ID from the user's session
+        # Get session ID from the user's session (it should be in cookies)
         session_id = get_session_id()  # This assumes you have a method to fetch the session ID
 
         # Get house details from the request body
@@ -170,12 +171,10 @@ def get_room_data():
         return jsonify({"error": str(e)}), 500
 
 
-   
-
 @app.route('/select-room', methods=['POST'])
 def select_room():
     try:
-        # Get session ID from the user's session
+        # Get session ID from the user's session (it should be in cookies)
         session_id = get_session_id()
 
         # Get the room details and color selections from the request body
