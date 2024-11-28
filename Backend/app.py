@@ -40,7 +40,7 @@ def unlock_expired_houses():
     locked_houses = mongo.db.houses.find({"locked": {"$ne": None}})
     
     # Define lock timeout period (e.g., 1 hour)
-    lock_timeout = timedelta(hours=1)  # Lock expires after 1 hour
+    lock_timeout = timedelta(minutes=2)  # Lock expires after 1 hour
 
     # Iterate through each locked house
     for house in locked_houses:
