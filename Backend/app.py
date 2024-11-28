@@ -3,7 +3,7 @@ import os
 from flask import Flask, jsonify, request, session, make_response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -34,10 +34,29 @@ def get_session_id():
         session['session_id'] = str(uuid.uuid4())  # Create a new session ID if it doesn't exist
     return session['session_id']
 
+# Function to handle session expiration and automatic unlocking
+def unlock_expired_houses():
+    # Fetch all houses that are locked
+    locked_houses = mongo.db.houses.find({"locked": {"$ne": None}})
+    
+    # Define lock timeout period (e.g., 1 hour)
+    lock_timeout = timedelta(hours=1)  # Lock expires after 1 hour
+
+    # Iterate through each locked house
+    for house in locked_houses:
+        locked_at = house.get('locked_at')
+        if locked_at and (datetime.utcnow() - locked_at) > lock_timeout:
+            # Unlock the house if the lock time has expired
+            mongo.db.houses.update_one(
+                {"house_id": house['house_id']},
+                {"$set": {"locked": None, "locked_at": None}}  # Clear the lock
+            )
 
 @app.route('/houses', methods=['GET'])
 def get_houses():
     try:
+        unlock_expired_houses()  # Ensure any expired locks are cleared
+
         session_id = get_session_id()
 
         if not session_id:
@@ -46,24 +65,21 @@ def get_houses():
         houses = mongo.db.houses.find()
         houses_list = []
 
-        # Fetch user-specific room selections
-        user_selections = mongo.db.user_selection.find({"session_id": session_id})
-        selected_rooms_by_house = {selection['house_id']: selection.get('selected_rooms', []) for selection in user_selections}
-
         for house in houses:
-            house_id = house.get('house_id') or str(uuid.uuid4())  # Generate a new UUID if missing
+            house_id = house.get('house_id')
 
             # Check if the house is locked by another user
             if house.get('locked') and house['locked'] != session_id:
-                continue  # Skip this house if it's locked by someone else
-
-            selected_rooms = selected_rooms_by_house.get(house_id, [])
+                house_locked = True
+            else:
+                house_locked = False
 
             houses_list.append({
                 'house_id': house_id,
                 'house_name': house.get('house_name'),
                 'house_image': house.get('house_image', ''),
-                'description': house.get('description', '')
+                'description': house.get('description', ''),
+                'locked': house_locked,  # Send lock status to frontend
             })
 
         return jsonify(houses_list)
@@ -71,28 +87,25 @@ def get_houses():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/select-house', methods=['POST'])
 def select_house():
     try:
-        # Get session ID from the user's session (it should be in cookies)
         session_id = get_session_id()
 
-        # Get house details from the request body
         data = request.get_json()
         house_id = data.get('house_id')
 
         # Check if the house is already locked by another user
         house = mongo.db.houses.find_one({"house_id": house_id})
-        
+
         if house and house.get('locked'):
             if house['locked'] != session_id:
                 return jsonify({"error": "This house is already locked by another user"}), 400
 
-        # Lock the house by setting the session ID
+        # Lock the house by setting the session ID and adding a locked timestamp
         mongo.db.houses.update_one(
             {"house_id": house_id},
-            {"$set": {"locked": session_id}}  # Lock the house by setting the session ID
+            {"$set": {"locked": session_id, "locked_at": datetime.utcnow()}}  # Lock the house with timestamp
         )
 
         return jsonify({
@@ -104,11 +117,15 @@ def select_house():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/exit', methods=['POST'])
 def exit_website():
     try:
-        session_id = get_session_id()
+        data = request.get_json()  # Get the incoming JSON data
+        house_id = data.get("house_id")
+        session_id = data.get("session_id")
+
+        if not house_id or not session_id:
+            return jsonify({"error": "House ID and Session ID are required"}), 400
 
         # Find all houses locked by this session ID
         locked_houses = mongo.db.houses.find({"locked": session_id})
@@ -117,16 +134,18 @@ def exit_website():
         for house in locked_houses:
             mongo.db.houses.update_one(
                 {"house_id": house['house_id']},
-                {"$set": {"locked": None}}  # Unlock the house by setting the locked field to None
+                {"$set": {"locked": None, "locked_at": None}}  # Unlock the house and clear timestamp
             )
 
         # End the session (logout the user)
         session.clear()
 
-        return jsonify({"message": "You have successfully exited the website and houses are unlocked"})
+        return jsonify({"message": "House unlocked and session ended"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 
 @app.route('/rooms/<house_id>', methods=['GET'])
@@ -149,6 +168,7 @@ def get_rooms(house_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+
 
 
 @app.route('/room-data', methods=['GET'])
