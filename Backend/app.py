@@ -40,7 +40,7 @@ def unlock_expired_houses():
     locked_houses = mongo.db.houses.find({"locked": {"$ne": None}})
 
     # Define lock timeout period (e.g., 1 hour)
-    lock_timeout = timedelta(hours=1)  # Lock expires after 1 hour
+    # Lock expires after 1 hour
     lock_timeout = timedelta(minutes=2)  # Lock expires after 1 hour
 
     # Iterate through each locked house
@@ -203,19 +203,19 @@ def get_room_data():
 
                 # Handle the case where images might not be available or are empty
                 if room_images:
-                    kitchen_image_data = room_images[0]
+                    room_data = room_images[0]
                 else:
-                    kitchen_image_data = {}
+                    room_data= {}
 
-                kitchen_data = {
+                room_data = {
                     "room_name": room.get("room_name"),
                     "images": room_images,
-                    "cabinet_colors": kitchen_image_data.get("cabinet_colors", []),
-                    "wall_colors": kitchen_image_data.get("wall_colors", []),
-                    "basin_colors": kitchen_image_data.get("basin_colors", []),
+                    "cabinet_colors": room_data.get("cabinet_colors", []),
+                    "wall_colors": room_data.get("wall_colors", []),
+                    "basin_colors": room_data.get("basin_colors", []),
                 }
 
-                return jsonify(kitchen_data), 200
+                return jsonify(room_data), 200
             else:
                 app.logger.error(f"Room '{room_name}' not found in house '{house_id}'")
                 return jsonify({"error": f"Room '{room_name}' not found in house '{house_id}'"}), 404
