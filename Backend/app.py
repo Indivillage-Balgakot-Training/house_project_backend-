@@ -243,6 +243,7 @@ def select_room():
         cabinet_colors = data.get('cabinet_colors', [])  # Default to empty list if no colors provided
         wall_colors = data.get('wall_colors', [])
         basin_colors = data.get('basin_colors', [])
+        wardrobe_colors = data.get('wardrobe_colors', [])  # Get wardrobe_colors from the request
 
         # Check if house_id, session_id, and selected_rooms are provided
         if not house_id or not session_id_from_request or not selected_rooms:
@@ -253,7 +254,8 @@ def select_room():
             'selected_rooms': selected_rooms,
             'cabinet_colors': cabinet_colors,
             'wall_colors': wall_colors,
-            'basin_colors': basin_colors
+            'basin_colors': basin_colors,
+            'wardrobe_colors': wardrobe_colors  # Add wardrobe_colors to the update data
         }
 
         # Use MongoDB update with $set to overwrite the existing document
