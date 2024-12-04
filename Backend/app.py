@@ -4,7 +4,9 @@ from flask import Flask, jsonify, request, session, make_response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 from datetime import datetime, timedelta
+import logging
 
+# Initialize Flask app
 app = Flask(__name__)
 
 # Set the secret key to enable session management (cookies)
@@ -41,7 +43,7 @@ def unlock_expired_houses():
 
     # Define lock timeout period (e.g., 1 hour)
     # Lock expires after 1 hour
-    lock_timeout = timedelta(seconds=20)  # Lock expires after 1 hour
+    lock_timeout = timedelta(seconds=20)  # Lock expires after 20 seconds
 
     # Iterate through each locked house
     for house in locked_houses:
@@ -146,9 +148,6 @@ def exit_website():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
-
 @app.route('/rooms/<house_id>', methods=['GET'])
 def get_rooms(house_id):
     try:
@@ -169,9 +168,6 @@ def get_rooms(house_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
-
 @app.route('/room-data', methods=['GET'])
 def get_room_data():
     try:
@@ -183,11 +179,7 @@ def get_room_data():
         house_id = request.args.get('house_id')
 
         if not house_id or not room_name:
-            app.logger.warning(f"Missing parameters: house_id={house_id}, room_name={room_name}")
             return jsonify({"error": "house_id and room_name are required parameters"}), 400
-
-        # Log the received parameters for debugging
-        app.logger.info(f"Received request with house_id: {house_id}, room_name: {room_name}")
 
         # Fetch room data from the database
         room_data = mongo.db.rooms.find_one({"house_id": house_id, "rooms.room_name": room_name})
@@ -198,14 +190,11 @@ def get_room_data():
             room = next((r for r in room_data.get("rooms", []) if r["room_name"] == room_name), None)
 
             if room:
-                # Safely extract the kitchen data from the room
                 room_images = room.get("images", [])
-
-                # Handle the case where images might not be available or are empty
                 if room_images:
                     room_data = room_images[0]
                 else:
-                    room_data= {}
+                    room_data = {}
 
                 room_data = {
                     "room_name": room.get("room_name"),
@@ -218,16 +207,12 @@ def get_room_data():
 
                 return jsonify(room_data), 200
             else:
-                app.logger.error(f"Room '{room_name}' not found in house '{house_id}'")
                 return jsonify({"error": f"Room '{room_name}' not found in house '{house_id}'"}), 404
         else:
-            app.logger.error(f"House '{house_id}' or room '{room_name}' not found in the database")
             return jsonify({"error": f"House '{house_id}' or room '{room_name}' not found"}), 404
 
     except Exception as e:
-        app.logger.error(f"Unexpected error: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/select-room', methods=['POST'])
 def select_room():
@@ -258,6 +243,9 @@ def select_room():
             'wardrobe_colors': wardrobe_colors  # Add wardrobe_colors to the update data
         }
 
+        # Log the update data for debugging
+        print(f"Update data: {update_data}")
+
         # Use MongoDB update with $set to overwrite the existing document
         result = mongo.db.user_selection.update_one(
             {'session_id': session_id_from_request, 'house_id': house_id},  # Find document by session_id and house_id
@@ -265,14 +253,20 @@ def select_room():
             upsert=True  # If no document exists, insert a new one
         )
 
-        if result.matched_count > 0:
+        # Log the result of the update
+        print(f"Matched: {result.matched_count}, Modified: {result.modified_count}, Upserted: {result.upserted_id}")
+
+        if result.matched_count > 0 or result.upserted_id:
             return jsonify({"message": "Room selection updated successfully"}), 200
         else:
             return jsonify({"error": "House not found or session mismatch"}), 404
 
     except Exception as e:
+        # Log any errors that occur during the process
+        print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
-if __name__ == "__main__":
+# Run the Flask app
+if __name__ == '__main__':
     app.run(debug=True)
