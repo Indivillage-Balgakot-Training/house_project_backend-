@@ -43,7 +43,7 @@ def unlock_expired_houses():
 
     # Define lock timeout period (e.g., 1 hour)
     # Lock expires after 1 hour
-    lock_timeout = timedelta(seconds=20)  # Lock expires after 20 seconds
+    lock_timeout = timedelta(minutes=1)  # Lock expires after 20 seconds
 
     # Iterate through each locked house
     for house in locked_houses:
