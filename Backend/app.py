@@ -65,7 +65,9 @@ def get_houses():
         if not session_id:
             return jsonify({"error": "Session ID is missing"}), 400
 
+        # Fetch all houses
         houses = mongo.db.houses.find()
+
         houses_list = []
 
         for house in houses:
@@ -73,9 +75,10 @@ def get_houses():
 
             # Check if the house is locked by another user
             if house.get('locked') and house['locked'] != session_id:
-                house_locked = True
-            else:
-                house_locked = False
+                # Skip adding this house to the list if it's locked by another user
+                continue
+
+            house_locked = house.get('locked') is not None and house['locked'] == session_id
 
             houses_list.append({
                 'house_id': house_id,
