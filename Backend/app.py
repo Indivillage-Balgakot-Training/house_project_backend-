@@ -43,7 +43,7 @@ def unlock_expired_houses():
 
     # Define lock timeout period (e.g., 1 hour)
     # Lock expires after 1 hour
-    lock_timeout = timedelta(minutes=1)  # Lock expires after 20 seconds
+    lock_timeout = timedelta(seconds=40)  # Lock expires after 20 seconds
 
     # Iterate through each locked house
     for house in locked_houses:
@@ -231,66 +231,96 @@ def get_room_data():
 @app.route('/select-room', methods=['POST'])
 def select_room():
     try:
-        # Get session ID from the user's session (it should be in cookies)
+        # Get the session ID from the request (assumed to be stored in cookies or headers)
         session_id = get_session_id()
 
         # Get the room details and color selections from the request body
         data = request.get_json()
         house_id = data.get('house_id')
-        session_id_from_request = data.get('session_id')  # session_id should be passed from the request body
+        session_id_from_request = data.get('session_id')  # session_id passed from the request body
         selected_rooms = data.get('selected_rooms')
         cabinet_colors = data.get('cabinet_colors', [])  # Default to empty list if no colors provided
         wall_colors = data.get('wall_colors', [])
         basin_colors = data.get('basin_colors', [])
-        wardrobe_colors = data.get('wardrobe_colors', [])  # Get wardrobe_colors from the request
+        wardrobe_colors = data.get('wardrobe_colors', [])
 
         # Check if house_id, session_id, and selected_rooms are provided
         if not house_id or not session_id_from_request or not selected_rooms:
             return jsonify({"error": "Missing house_id, session_id, or selected_rooms"}), 400
 
-        # Prepare the update data for all rooms
+        # Prepare the update data
         update_data = {
             'selected_rooms': selected_rooms,
         }
 
-        # Process the rooms, checking if any is the 'bedroom'
-        for room_name in selected_rooms:
-            if room_name.lower() == 'bedroom':
-                # For bedroom, only include wardrobe_colors and wall_colors
-                update_data['wardrobe_colors'] = wardrobe_colors
-                update_data['wall_colors'] = wall_colors
-                # Omit cabinet_colors and basin_colors for bedroom
-                
-                break  # Once bedroom is handled, stop the loop
-            else:
-                # For other rooms, include all colors (cabinet_colors, basin_colors, etc.)
-                update_data['cabinet_colors'] = cabinet_colors
-                update_data['basin_colors'] = basin_colors
-                update_data['wall_colors'] = wall_colors
+        # Handle room-specific data
+        if 'bedroom' in selected_rooms:
+            update_data['wardrobe_colors'] = wardrobe_colors
+            update_data['wall_colors'] = wall_colors
+        else:
+            update_data['cabinet_colors'] = cabinet_colors
+            update_data['basin_colors'] = basin_colors
+            update_data['wall_colors'] = wall_colors
 
         # Log the update data for debugging
         print(f"Update data: {update_data}")
 
-        # Use MongoDB update with $set to overwrite the existing document
+        # MongoDB update query
         result = mongo.db.user_selection.update_one(
-            {'session_id': session_id_from_request, 'house_id': house_id},  # Find document by session_id and house_id
-            {'$set': update_data},  # Update the fields
-            upsert=True  # If no document exists, insert a new one
+            {'session_id': session_id_from_request, 'house_id': house_id},
+            {'$set': update_data}, 
+            upsert=True  # Insert a new document if not found
         )
 
-        # Log the result of the update
-        print(f"Matched: {result.matched_count}, Modified: {result.modified_count}, Upserted: {result.upserted_id}")
-
+        # Check if update was successful
         if result.matched_count > 0 or result.upserted_id:
             return jsonify({"message": "Room selection updated successfully"}), 200
         else:
             return jsonify({"error": "House not found or session mismatch"}), 404
 
     except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/user-selection', methods=['GET'])
+def get_room_selection():
+    try:
+        # Ensure the user has a session ID
+        session_id = get_session_id()
+
+        # Get house_id from query parameters
+        house_id = request.args.get('house_id')
+
+        if not house_id or not session_id:
+            return jsonify({"error": "Missing house_id or session_id"}), 400
+
+        # Query the user_selection collection to get the stored room selection data
+        user_selection = mongo.db.user_selection.find_one({'session_id': session_id, 'house_id': house_id})
+
+        if not user_selection:
+            return jsonify({"error": "No previous selection found for this house and user"}), 404
+
+        # Prepare the response data with selected rooms and colors, excluding missing data
+        selection_data = {
+            'selected_rooms': user_selection.get('selected_rooms', []),
+        }
+
+        # Add colors only if they exist
+        if 'cabinet_colors' in user_selection:
+            selection_data['cabinet_colors'] = user_selection['cabinet_colors']
+        if 'wall_colors' in user_selection:
+            selection_data['wall_colors'] = user_selection['wall_colors']
+        if 'basin_colors' in user_selection:
+            selection_data['basin_colors'] = user_selection['basin_colors']
+        if 'wardrobe_colors' in user_selection:
+            selection_data['wardrobe_colors'] = user_selection['wardrobe_colors']
+
+        return jsonify(selection_data), 200
+
+    except Exception as e:
         # Log any errors that occur during the process
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
 
 
 # Run the Flask app
