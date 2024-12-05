@@ -199,14 +199,24 @@ def get_room_data():
                 else:
                     room_data = {}
 
-                room_data = {
-                    "room_name": room.get("room_name"),
-                    "images": room_images,
-                    "cabinet_colors": room_data.get("cabinet_colors", []),
-                    "wall_colors": room_data.get("wall_colors", []),
-                    "basin_colors": room_data.get("basin_colors", []),
-                    "wardrobe_colors": room_data.get("wardrobe_colors", []),
-                }
+                # If it's the bedroom, add the wardrobe_colors to the response
+                if room_name.lower() == 'bedroom':
+                    room_data = {
+                        "room_name": room.get("room_name"),
+                        "images": room_images,
+                        "cabinet_colors": room_data.get("cabinet_colors", []),
+                        "wall_colors": room_data.get("wall_colors", []),
+                        "basin_colors": room_data.get("basin_colors", []),
+                        "wardrobe_colors": room_data.get("wardrobe_colors", []),  # Only for bedroom
+                    }
+                else:
+                    room_data = {
+                        "room_name": room.get("room_name"),
+                        "images": room_images,
+                        "cabinet_colors": room_data.get("cabinet_colors", []),
+                        "wall_colors": room_data.get("wall_colors", []),
+                        "basin_colors": room_data.get("basin_colors", []),
+                    }
 
                 return jsonify(room_data), 200
             else:
@@ -216,6 +226,7 @@ def get_room_data():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/select-room', methods=['POST'])
 def select_room():
@@ -237,14 +248,25 @@ def select_room():
         if not house_id or not session_id_from_request or not selected_rooms:
             return jsonify({"error": "Missing house_id, session_id, or selected_rooms"}), 400
 
-        # Prepare the update data
+        # Prepare the update data for all rooms
         update_data = {
             'selected_rooms': selected_rooms,
-            'cabinet_colors': cabinet_colors,
-            'wall_colors': wall_colors,
-            'basin_colors': basin_colors,
-            'wardrobe_colors': wardrobe_colors  # Add wardrobe_colors to the update data
         }
+
+        # Process the rooms, checking if any is the 'bedroom'
+        for room_name in selected_rooms:
+            if room_name.lower() == 'bedroom':
+                # For bedroom, only include wardrobe_colors and wall_colors
+                update_data['wardrobe_colors'] = wardrobe_colors
+                update_data['wall_colors'] = wall_colors
+                # Omit cabinet_colors and basin_colors for bedroom
+                
+                break  # Once bedroom is handled, stop the loop
+            else:
+                # For other rooms, include all colors (cabinet_colors, basin_colors, etc.)
+                update_data['cabinet_colors'] = cabinet_colors
+                update_data['basin_colors'] = basin_colors
+                update_data['wall_colors'] = wall_colors
 
         # Log the update data for debugging
         print(f"Update data: {update_data}")
@@ -268,6 +290,7 @@ def select_room():
         # Log any errors that occur during the process
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
 
 
 # Run the Flask app
