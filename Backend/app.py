@@ -209,6 +209,15 @@ def get_room_data():
                         "basin_colors": room_data.get("basin_colors", []),
                         "wardrobe_colors": room_data.get("wardrobe_colors", []),  # Only for bedroom
                     }
+                elif room_name.lower() == 'living room':
+                    # Handle Living Room specifics (including ceiling images)
+                    room_data = {
+                        "room_name": room.get("room_name"),
+                        "images": room_images,
+                        "cabinet_colors": room_data.get("cabinet_colors", []),
+                        "wall_colors": room_data.get("wall_colors", []),
+                        "ceiling_images": room_data.get("ceiling_images", []),  # Ceiling colors for Living Room
+                    }
                 else:
                     room_data = {
                         "room_name": room.get("room_name"),
@@ -243,6 +252,7 @@ def select_room():
         wall_colors = data.get('wall_colors', [])
         basin_colors = data.get('basin_colors', [])
         wardrobe_colors = data.get('wardrobe_colors', [])
+        ceiling_colors = data.get('ceiling_colors', [])  # New ceiling_colors for the living room
 
         # Check if house_id, session_id, and selected_rooms are provided
         if not house_id or not session_id_from_request or not selected_rooms:
@@ -256,6 +266,9 @@ def select_room():
         # Handle room-specific data
         if 'bedroom' in selected_rooms:
             update_data['wardrobe_colors'] = wardrobe_colors
+            update_data['wall_colors'] = wall_colors
+        elif 'living room' in selected_rooms:
+            update_data['ceiling_colors'] = ceiling_colors  # Include ceiling colors for Living Room
             update_data['wall_colors'] = wall_colors
         else:
             update_data['cabinet_colors'] = cabinet_colors
@@ -281,6 +294,7 @@ def select_room():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
     
 @app.route('/user-selection', methods=['GET'])
 def get_room_selection():
