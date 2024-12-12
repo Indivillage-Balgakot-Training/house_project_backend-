@@ -43,7 +43,7 @@ def unlock_expired_houses():
 
     # Define lock timeout period (e.g., 1 hour)
     # Lock expires after 1 hour
-    lock_timeout = timedelta(seconds=40)  # Lock expires after 20 seconds
+    lock_timeout = timedelta(seconds=10)  # Lock expires after 20 seconds
 
     # Iterate through each locked house
     for house in locked_houses:
@@ -216,7 +216,7 @@ def get_room_data():
                         "images": room_images,
                         "cabinet_colors": room_data.get("cabinet_colors", []),
                         "wall_colors": room_data.get("wall_colors", []),
-                        "ceiling_images": room_data.get("ceiling_images", []),  # Ceiling colors for Living Room
+                        "ceiling_colors": room_data.get("ceiling_colors", []),  # Ceiling colors for Living Room
                     }
                 else:
                     room_data = {
