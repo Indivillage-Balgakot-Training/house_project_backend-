@@ -31,12 +31,12 @@ app.config.update(
 
 # Function to ensure each user has a unique session ID stored in cookies
 def get_session_id():
-    if 'session_id' not in session:
+    if 'session_id' not in session: #checking if session id is not in session
         session.permanent = True  # Keep session alive across browser restarts
         session['session_id'] = str(uuid.uuid4())  # Generate a new UUID if no session ID exists
     return session['session_id']
 
-# Function to unlock houses whose lock has expired
+# Function to unlock houses whose lock has expired when the time limit ends
 def unlock_expired_houses():
     # Get all houses with an active lock
     locked_houses = mongo.db.houses.find({"locked": {"$ne": None}})
@@ -44,7 +44,7 @@ def unlock_expired_houses():
     # Set the lock expiration time (e.g., 10 seconds for testing)
     lock_timeout = timedelta(seconds=10)
 
-    for house in locked_houses:
+    for house in locked_houses: # checking the house in locked_house
         locked_at = house.get('locked_at')
         if locked_at and (datetime.utcnow() - locked_at) > lock_timeout:
             # If the lock has expired, remove the lock from the house
@@ -67,10 +67,10 @@ def get_houses():
         # Retrieve all houses from the database
         houses = mongo.db.houses.find()
 
-        houses_list = []
+        houses_list = [] #Displays the houses
 
-        for house in houses:
-            house_id = house.get('house_id')
+        for house in houses: #if house in houses 
+            house_id = house.get('house_id') #get the house_id
 
             # Check if the house is locked by another user
             if house.get('locked') and house['locked'] != session_id:
@@ -131,7 +131,7 @@ def exit_website():
         house_id = data.get("house_id")
         session_id = data.get("session_id")
 
-        if not house_id or not session_id:
+        if not house_id or not session_id: #if house_id and session-id are not present
             return jsonify({"error": "House ID and Session ID are required"}), 400
 
         # Find and unlock all houses locked by the session
