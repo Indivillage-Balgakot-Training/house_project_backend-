@@ -43,7 +43,7 @@ def unlock_expired_houses():
     locked_houses = mongo.db.houses.find({"locked": {"$ne": None}})
 
     # Set the lock expiration time (e.g., 10 seconds for testing purposes)
-    lock_timeout = timedelta(seconds=10)
+    lock_timeout = timedelta(seconds=5)
 
     # Loop through each house to check if its lock has expired
     for house in locked_houses:
@@ -180,7 +180,8 @@ def get_rooms(house_id):
 @app.route('/room-data', methods=['GET'])
 def get_room_data():
     try:
-        session_id = get_session_id()  # Get the session ID for the current user
+        # Get the session ID for the current user (optional, implement as needed)
+        session_id = get_session_id()
 
         # Get room and house details from query parameters
         room_name = request.args.get('room_name')
@@ -189,56 +190,45 @@ def get_room_data():
         if not house_id or not room_name:  # If house ID or room name is missing
             return jsonify({"error": "house_id and room_name are required parameters"}), 400
 
-        # Fetch room data for the given house and room name from the database
-        room_data = mongo.db.rooms.find_one({"house_id": house_id, "rooms.room_name": room_name})
+        # Fetch house data from the MongoDB
+        house_data = mongo.db.rooms.find_one({"house_id": house_id})
 
-        if room_data:  # If room data is found
-            # Find the specific room from the list of rooms in the house
-            room = next((r for r in room_data.get("rooms", []) if r["room_name"] == room_name), None)
+        if house_data:  # If house data is found
+            # Find the specific room by room_name in the 'rooms' array
+            room = next((r for r in house_data.get("rooms", []) if r["room_name"] == room_name), None)
 
             if room:
-                room_images = room.get("images", [])  # Get the images for the room
+                # Room data found, prepare the response with images and color categories
+                room_response = {
+                    "room_name": room.get("room_name"),
+                    "images": [image.get("image_path") for image in room.get("images", [])],  # Collecting all image paths
+                }
 
-                if room_images:
-                    room_data = room_images[0]  # Get the first image if available
-                else:
-                    room_data = {}
+                # Loop through each room's image to extract dynamic color categories
+                for image in room.get("images", []):
+                    for category in image.get("color_categories", []):
+                        category_key = category.get("key")
+                        category_label = category.get("label")
+                        colors = category.get("colors", [])
 
-                # Special handling for bedroom and living room rooms
-                if room_name.lower() == 'bedroom':
-                    room_data = {
-                        "room_name": room.get("room_name"),
-                        "images": room_images,
-                        "cabinet_colors": room_data.get("cabinet_colors", []),
-                        "wall_colors": room_data.get("wall_colors", []),
-                        "basin_colors": room_data.get("basin_colors", []),
-                        "wardrobe_colors": room_data.get("wardrobe_colors", []),  # For bedroom
-                    }
-                elif room_name.lower() == 'living room':
-                    room_data = {
-                        "room_name": room.get("room_name"),
-                        "images": room_images,
-                        "cabinet_colors": room_data.get("cabinet_colors", []),
-                        "wall_colors": room_data.get("wall_colors", []),
-                        "ceiling_colors": room_data.get("ceiling_colors", []),  # Living room specific ceiling colors
-                    }
-                else:
-                    room_data = {
-                        "room_name": room.get("room_name"),
-                        "images": room_images,
-                        "cabinet_colors": room_data.get("cabinet_colors", []),
-                        "wall_colors": room_data.get("wall_colors", []),
-                        "basin_colors": room_data.get("basin_colors", []),
-                    }
+                        # Add the color categories to the room_response dynamically
+                        if category_key and category_label and colors:
+                            room_response[category_key] = [
+                                {"color": color["color"], "image": color["image"]} for color in colors
+                            ]
+                        else:
+                            room_response[category_key] = []  # Return an empty list if no color data found
 
-                return jsonify(room_data), 200  # Return the room data in JSON format
+                return jsonify(room_response), 200  # Successfully retrieved room data
+
             else:
                 return jsonify({"error": f"Room '{room_name}' not found in house '{house_id}'"}), 404
+
         else:
-            return jsonify({"error": f"House '{house_id}' or room '{room_name}' not found"}), 404
+            return jsonify({"error": f"House '{house_id}' not found"}), 404
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500  # Return an error if something goes wrong
+        return jsonify({"error": str(e)}), 500  # Return error if something goes wrong
 
 
 # Route to select rooms and update preferences (like colors)
