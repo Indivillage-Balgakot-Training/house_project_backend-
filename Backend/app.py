@@ -1,5 +1,6 @@
 import uuid
 import os
+import json
 from flask import Flask, jsonify, request, session, make_response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
@@ -176,144 +177,17 @@ def get_rooms(house_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500  # Return an error if something goes wrong
 
+
 def load_house_data(house_id):
-    # House data for different houses with selected colors
-    house_data = {
-        "house-001": {
-            "house_id": "house-001",
-            "rooms": [
-                {
-                    "room_name": "Kitchen",
-                    "images": [
-                        {
-                            "image_path": "/images/kitchen.jpg",
-                            "color_categories": [
-                                {
-                                    "key": "cabinet_colors",
-                                    "label": "Cabinet Colors",
-                                    "colors": [
-                                        {"color": "#D2B48C", "image": "/images/kitchenCabinet1.jpg"},
-                                        {"color": "#FFD700", "image": "/images/kitchenCabinet2.jpg"},
-                                        {"color": "#E37383", "image": "/images/kitchenCabinet3.jpg"}
-                                    ]
-                                },
-                                {
-                                    "key": "wall_colors",
-                                    "label": "Wall Colors",
-                                    "colors": [
-                                        {"color": "#b0c8bf", "image": "/images/Wall1.jpg"},
-                                        {"color": "#FFB6C1", "image": "/images/Wall2.jpg"},
-                                        {"color": "#c8bca6", "image": "/images/Wall3.jpg"}
-                                    ]
-                                },
-                                {
-                                    "key": "basin_colors",
-                                    "label": "Basin Colors",
-                                    "colors": [
-                                        {"color": "#C0C0C0", "image": "/images/kitchen.jpg"}
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-            ]
-        },
-        "house-002": {
-            "house_id": "house-002",
-            "rooms": [
-                {
-                    "room_name": "Kitchen",
-                    "images": [
-                        {
-                            "image_path": "/images/Kitchen img.jpg",
-                            "color_categories": [
-                                {
-                                    "key": "cabinet_colors",
-                                    "label": "Cabinet Colors",
-                                    "colors": [
-                                        {"color": "#baaf45", "image": "/images/H2 kitchen green.jpg"},
-                                        {"color": "#e39950", "image": "/images/H2 kitchen orange.jpg"},
-                                        {"color": "#95a4db", "image": "/images/H2 kitchen purple.jpg"}
-                                    ]
-                                },
-                                {
-                                    "key": "wall_colors",
-                                    "label": "Wall Colors",
-                                    "colors": [
-                                        {"color": "#b8d5d9", "image": "/images/H2 Kitchen BlueWall.jpg"},
-                                        {"color": "#eec7c2", "image": "/images/H2 Kitchen PinkWall.jpg"},
-                                        {"color": "#ccdac1", "image": "/images/H2 Kitchen PistaWall.jpg"}
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "room_name": "Living Room",
-                    "images": [
-                        {
-                            "image_path": "/images/LivingRoom.jpg",
-                            "color_categories": [
-                                {
-                                    "key": "wall_colors",
-                                    "label": "Wall Colors",
-                                    "colors": [
-                                        {"color": "#afdc8b", "image": "/images/H2 Living Room Wall Green.jpg"},
-                                        {"color": "#d3c5ff", "image": "/images/H2 Living Room Wall Purple.jpg"},
-                                        {"color": "#93ece8", "image": "/images/H2 Living Room Wall SkyBlue.jpg"}
-                                    ]
-                                },
-                                {
-                                    "key": "ceiling_colors",
-                                    "label": "Ceiling Colors",
-                                    "colors": [
-                                        {"color": "#eed725", "image": "/images/H2 Living Room Ceiling Yellow.jpg"},
-                                        {"color": "#ffaead", "image": "/images/H2 Living Room Ceiling Pink.jpg"},
-                                        {"color": "#ffaf5d", "image": "/images/H2 Living Room Ceiling Orange.jpg"}
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "room_name": "Bedroom",
-                    "images": [
-                        {
-                            "image_path": "/images/Bed Room.jpg",
-                            "color_categories": [
-                                {
-                                    "key": "wall_colors",
-                                    "label": "Wall Colors",
-                                    "colors": [
-                                        {"color": "#CFBFE3", "image": "/images/Bed Room Purple.jpg"},
-                                        {"color": "#F3BAB3", "image": "/images/Bed Room Pink.jpg"},
-                                        {"color": "#C5CAB4", "image": "/images/Bed Room Pista.jpg"}
-                                    ]
-                                },
-                                {
-                                    "key": "wardrobe_colors",
-                                    "label": "Wardrobe Colors",
-                                    "colors": [
-                                        {"color": "#e8ecbe", "image": "/images/bed1.jpg"},
-                                        {"color": "#ecdf76", "image": "/images/bed2.jpg"},
-                                        {"color": "#a6ebf2", "image": "/images/bed3.jpg"}
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-
-    # Return the data for the specific house id
-    return house_data.get(house_id, "House ID not found")
-
-
+    try:
+        # Open the JSON file and load the data
+        with open('house_data.json', 'r') as f:
+            house_data = json.load(f)
+        
+        # Return the data for the specific house id
+        return house_data.get(house_id, "House ID not found")
+    except Exception as e:
+        return str(e)
 
 @app.route('/room-data_dev', methods=['GET'])
 def get_room_data_dev():
@@ -330,7 +204,7 @@ def get_room_data_dev():
         house_data = load_house_data(house_id)
 
         # If house_data is None, return an error message
-        if not house_data:
+        if house_data == "House ID not found":
             return jsonify({"error": f"House '{house_id}' not found"}), 404
 
         # Find the room in the house
@@ -365,7 +239,6 @@ def get_room_data_dev():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
     
 # Route to select rooms and update preferences (like colors)
 @app.route('/select-room', methods=['POST'])
