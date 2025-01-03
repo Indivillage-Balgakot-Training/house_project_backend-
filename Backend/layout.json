@@ -1,0 +1,316 @@
+[
+    {
+      "_id": {
+        "$oid": "674551894464590145002a06"
+      },
+      "house_id": "house-001",
+      "house_name": "House 1",
+      "rooms_image": "/image2.jpg",
+      "rooms": [
+        {
+          "name": "Bedroom",
+          "areas": [
+            {
+              "name": "bedroom",
+              "left": 83,
+              "top": 61,
+              "width": 185,
+              "height": 278,
+              "color": "red"
+            }
+          ]
+        },
+        {
+          "name": "Open Area",
+          "areas": [
+            {
+              "name": "openArea",
+              "left": 268,
+              "top": 59,
+              "width": 119,
+              "height": 280,
+              "color": "green"
+            }
+          ]
+        },
+        {
+          "name": "Master Bedroom 2",
+          "areas": [
+            {
+              "name": "masterBedroom2",
+              "left": 388,
+              "top": 58,
+              "width": 163,
+              "height": 281,
+              "color": "blue"
+            }
+          ]
+        },
+        {
+          "name": "Master Bedroom 1",
+          "areas": [
+            {
+              "name": "masterBedroom1",
+              "left": 551,
+              "top": 59,
+              "width": 180,
+              "height": 280,
+              "color": "yellow"
+            }
+          ]
+        },
+        {
+          "name": "Guest Bathroom",
+          "areas": [
+            {
+              "name": "guestBathroom",
+              "left": 80,
+              "top": 337,
+              "width": 189,
+              "height": 134,
+              "color": "purple"
+            }
+          ]
+        },
+        {
+          "name": "Kitchen",
+          "areas": [
+            {
+              "name": "kitchen",
+              "left": 552,
+              "top": 341,
+              "width": 180,
+              "height": 131,
+              "color": "orange"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_id": {
+        "$oid": "674553dabd5daed597c26969"
+      },
+      "house_id": "house-002",
+      "house_name": "House 2",
+      "rooms_image": "/images/layout.jpg",
+      "rooms": [
+        {
+          "name": "Bedroom",
+          "areas": [
+            {
+              "name": "bedroom",
+              "left": 215,
+              "top": 100,
+              "width": 198,
+              "height": 120,
+              "color": "blue"
+            }
+          ]
+        },
+        {
+          "name": "Kitchen",
+          "areas": [
+            {
+              "name": "kitchen",
+              "left": 218,
+              "top": 220,
+              "width": 195,
+              "height": 197,
+              "color": "green"
+            }
+          ]
+        },
+        {
+          "name": "Living Room",
+          "areas": [
+            {
+              "name": "livingroom",
+              "left": 413,
+              "top": 100,
+              "width": 200,
+              "height": 315,
+              "color": "red"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_id": {
+        "$oid": "674551aa4464590145002a07"
+      },
+      "house_id": "house-003",
+      "house_name": "House 3",
+      "rooms_image": "/image2.jpg",
+      "rooms": [
+        {
+          "name": "Bedroom",
+          "areas": [
+            {
+              "name": "bedroom",
+              "left": 83,
+              "top": 61,
+              "width": 185,
+              "height": 278,
+              "color": "red"
+            }
+          ]
+        },
+        {
+          "name": "Open Area",
+          "areas": [
+            {
+              "name": "openArea",
+              "left": 268,
+              "top": 59,
+              "width": 119,
+              "height": 280,
+              "color": "green"
+            }
+          ]
+        },
+        {
+          "name": "Master Bedroom 2",
+          "areas": [
+            {
+              "name": "masterBedroom2",
+              "left": 388,
+              "top": 58,
+              "width": 163,
+              "height": 281,
+              "color": "blue"
+            }
+          ]
+        },
+        {
+          "name": "Master Bedroom 1",
+          "areas": [
+            {
+              "name": "masterBedroom1",
+              "left": 551,
+              "top": 59,
+              "width": 180,
+              "height": 280,
+              "color": "yellow"
+            }
+          ]
+        },
+        {
+          "name": "Guest Bathroom",
+          "areas": [
+            {
+              "name": "guestBathroom",
+              "left": 80,
+              "top": 337,
+              "width": 189,
+              "height": 134,
+              "color": "purple"
+            }
+          ]
+        },
+        {
+          "name": "Kitchen",
+          "areas": [
+            {
+              "name": "kitchen",
+              "left": 552,
+              "top": 341,
+              "width": 180,
+              "height": 131,
+              "color": "orange"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_id": {
+        "$oid": "674551fefa380c212a896514"
+      },
+      "house_id": "house-004",
+      "house_name": "House 4",
+      "rooms_image": "/image2.jpg",
+      "rooms": [
+        {
+          "name": "Bedroom",
+          "areas": [
+            {
+              "name": "bedroom",
+              "left": 83,
+              "top": 61,
+              "width": 185,
+              "height": 278,
+              "color": "red"
+            }
+          ]
+        },
+        {
+          "name": "Open Area",
+          "areas": [
+            {
+              "name": "openArea",
+              "left": 268,
+              "top": 59,
+              "width": 119,
+              "height": 280,
+              "color": "green"
+            }
+          ]
+        },
+        {
+          "name": "Master Bedroom 2",
+          "areas": [
+            {
+              "name": "masterBedroom2",
+              "left": 388,
+              "top": 58,
+              "width": 163,
+              "height": 281,
+              "color": "blue"
+            }
+          ]
+        },
+        {
+          "name": "Master Bedroom 1",
+          "areas": [
+            {
+              "name": "masterBedroom1",
+              "left": 551,
+              "top": 59,
+              "width": 180,
+              "height": 280,
+              "color": "yellow"
+            }
+          ]
+        },
+        {
+          "name": "Guest Bathroom",
+          "areas": [
+            {
+              "name": "guestBathroom",
+              "left": 80,
+              "top": 337,
+              "width": 189,
+              "height": 134,
+              "color": "purple"
+            }
+          ]
+        },
+        {
+          "name": "Kitchen",
+          "areas": [
+            {
+              "name": "kitchen",
+              "left": 552,
+              "top": 341,
+              "width": 180,
+              "height": 131,
+              "color": "orange"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+  

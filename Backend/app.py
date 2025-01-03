@@ -57,6 +57,14 @@ def unlock_expired_houses():
             )
 
 # Route to get the list of available houses
+def load_house():
+    try:
+        with open('house.json', 'r') as file:
+            return json.load(file)  # Return the content of the JSON file
+    except Exception as e:
+        raise Exception(f"Error loading house data: {str(e)}")
+
+# Route to get the list of available houses
 @app.route('/houses', methods=['GET'])
 def get_houses():
     try:
@@ -67,8 +75,8 @@ def get_houses():
         if not session_id:  # If no session ID exists, return an error
             return jsonify({"error": "Session ID is missing"}), 400
 
-        # Retrieve all houses from the database
-        houses = mongo.db.houses.find()
+        # Load houses data from the JSON file (no arguments required)
+        houses = load_house()
 
         houses_list = []  # List to store available houses
 
@@ -157,31 +165,44 @@ def exit_website():
         return jsonify({"error": str(e)}), 500  # Return an error if something goes wrong
 
 # Route to get the layout and rooms of a specific house
+def load_layout_data():
+    try:
+        with open('layout.json', 'r') as file:
+            return json.load(file)  # Return the content of the JSON file
+    except Exception as e:
+        raise Exception(f"Error loading layout data: {str(e)}")
+
+# Route to get the rooms and layout image for a specific house
 @app.route('/rooms/<house_id>', methods=['GET'])
 def get_rooms(house_id):
     try:
-        # Fetch the house layout for the given house ID from the database
-        house_layout = mongo.db.layout.find_one({"house_id": house_id})
+        # Load layout data from the JSON file
+        layouts = load_layout_data()
+
+        # Find the layout by house_id
+        house_layout = next((house for house in layouts if house['house_id'] == house_id), None)
 
         if not house_layout:  # If the layout is not found
-            return jsonify({"error": "House layout not found"}), 404  # Return an error
+            return jsonify({"error": "House layout not found"}), 404  # Return an error if the house is not found
 
-        rooms_data = house_layout.get('rooms', [])  # Get the list of rooms in the house layout
-        rooms_image = house_layout.get('rooms_image', '')  # Get the image of the rooms, if any
+        # Extract rooms and the rooms image
+        rooms_data = house_layout.get('rooms', [])  # List of rooms in the house layout
+        rooms_image = house_layout.get('rooms_image', '')  # Image URL of the rooms layout
 
+        # Return the response with the rooms and layout image
         return jsonify({
             "rooms_image": rooms_image,  # Return the rooms image (if any)
             "rooms": rooms_data  # Return the list of rooms in the house
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500  # Return an error if something goes wrong
+        return jsonify({"error": str(e)}), 500  # Return an error if something goes wrong# Return an error if something goes wrong
 
 
-def load_house_data(house_id):
+def load_room_data(house_id):
     try:
         # Open the JSON file and load the data
-        with open('house_data.json', 'r') as f:
+        with open('room.json', 'r') as f:
             house_data = json.load(f)
         
         # Return the data for the specific house id
@@ -201,7 +222,7 @@ def get_room_data_dev():
             return jsonify({"error": "house_id and room_name are required parameters"}), 400
 
         # Load house data based on the provided house_id
-        house_data = load_house_data(house_id)
+        house_data = load_room_data(house_id)
 
         # If house_data is None, return an error message
         if house_data == "House ID not found":
