@@ -272,11 +272,7 @@ def select_room():
         house_id = data.get('house_id')
         session_id_from_request = data.get('session_id')  # The session ID passed with the request
         selected_rooms = data.get('selected_rooms')  # The list of rooms selected by the user
-        cabinet_colors = data.get('cabinet_colors', [])  # Default empty if not provided
-        wall_colors = data.get('wall_colors', [])
-        basin_colors = data.get('basin_colors', [])
-        wardrobe_colors = data.get('wardrobe_colors', [])  # Specific to bedroom
-        ceiling_colors = data.get('ceiling_colors', [])  # Specific to living room
+        preferences = data.get('preferences', {})  # This will contain all preferences dynamically
 
         if not house_id or not session_id_from_request or not selected_rooms:  # If required data is missing
             return jsonify({"error": "Missing house_id, session_id, or selected_rooms"}), 400
@@ -285,17 +281,9 @@ def select_room():
             'selected_rooms': selected_rooms,  # Update the list of selected rooms
         }
 
-        # Update room-specific preferences based on the room type
-        if 'bedroom' in selected_rooms:
-            update_data['wardrobe_colors'] = wardrobe_colors
-            update_data['wall_colors'] = wall_colors
-        elif 'living room' in selected_rooms:
-            update_data['ceiling_colors'] = ceiling_colors  # Add ceiling colors for living room
-            update_data['wall_colors'] = wall_colors
-        else:
-            update_data['cabinet_colors'] = cabinet_colors
-            update_data['basin_colors'] = basin_colors
-            update_data['wall_colors'] = wall_colors
+        # Loop through the preferences and dynamically add them
+        for category, colors in preferences.items():
+            update_data[category] = colors
 
         # Log the update data for debugging purposes
         print(f"Update data: {update_data}")
@@ -317,12 +305,12 @@ def select_room():
         return jsonify({"error": str(e)}), 500  # Return an error if something goes wrong
 
 
+
 # Route to fetch user selections for a house
 @app.route('/user-selection', methods=['GET'])
 def get_room_selection():
     try:
         session_id = get_session_id()  # Get the session ID for the current user
-
         house_id = request.args.get('house_id')  # Get the house ID from the request query parameters
 
         if not house_id or not session_id:  # If either house ID or session ID is missing
@@ -339,21 +327,22 @@ def get_room_selection():
             'selected_rooms': user_selection.get('selected_rooms', []),
         }
 
-        # Include the selected color preferences for each room type
-        if 'cabinet_colors' in user_selection:
-            selection_data['cabinet_colors'] = user_selection['cabinet_colors']
-        if 'wall_colors' in user_selection:
-            selection_data['wall_colors'] = user_selection['wall_colors']
-        if 'basin_colors' in user_selection:
-            selection_data['basin_colors'] = user_selection['basin_colors']
-        if 'wardrobe_colors' in user_selection:
-            selection_data['wardrobe_colors'] = user_selection['wardrobe_colors']
+        # Add dynamic preferences to the response based on what exists in the user selection
+        preferences = {}
+        for key in user_selection:
+            # Skip session_id and house_id, as they are not preferences
+            if key not in ['session_id', 'house_id', 'selected_rooms']:
+                preferences[key] = user_selection[key]
+
+        # Add the preferences to the selection data
+        selection_data.update(preferences)
 
         return jsonify(selection_data), 200  # Return the selection data as a JSON response
 
     except Exception as e:
         print(f"Error: {str(e)}")  # Log any errors that occur
         return jsonify({"error": str(e)}), 500  # Return an error if something goes wrong
+
 
 
 # Start the Flask application (this runs the web server)
