@@ -1,0 +1,717 @@
+MongoDB Structure 
+Totally 4 Collection
+1. Houses 2.Layout 3.Rooms 4.UserSelection
+Mongodb Structure
+1.Houses 
+{
+  "_id": {
+    "$oid": "677e4fafd8db459f1b7f07f1"
+  },
+  "house_id": "house-001",
+  "house_name": "House 1",
+  "house_image": "/house1.jpg",
+  "description": "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors.",
+  "locked": null,
+  "locked_at": null
+}
+{
+  "_id": {
+    "$oid": "677e4fcdd8db459f1b7f07f2"
+  },
+  "house_id": "house-002",
+  "house_name": "House 2",
+  "house_image": "/house2.jpg",
+  "description": "A cozy cottage with a charming garden. Perfect for those looking for a peaceful retreat.",
+  "locked": null,
+  "locked_at": null
+}
+{
+  "_id": {
+    "$oid": "677e4fd9d8db459f1b7f07f3"
+  },
+  "house_id": "house-003",
+  "house_name": "House 3",
+  "house_image": "/house3.jpg",
+  "description": "An elegant mansion with luxurious finishes and a stunning view. Ideal for large families or entertaining guests.",
+  "locked": null
+}
+{
+  "_id": {
+    "$oid": "677e4fe5d8db459f1b7f07f4"
+  },
+  "house_id": "house-004",
+  "house_name": "House 4",
+  "house_image": "/house4.jpg",
+  "description": "A contemporary townhouse with sleek design and eco-friendly features. Located in a vibrant neighborhood.",
+  "locked": null
+}
+
+2. Layout Structure
+{
+  "_id": {
+    "$oid": "677e5078d8db459f1b7f07f5"
+  },
+  "house_id": "house-001",
+  "house_name": "House 1",
+  "rooms_image": "/image2.jpg",
+  "rooms": [
+    {
+      "name": "Bedroom",
+      "areas": [
+        {
+          "name": "bedroom",
+          "left": 83,
+          "top": 61,
+          "width": 185,
+          "height": 278,
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "name": "Open Area",
+      "areas": [
+        {
+          "name": "openArea",
+          "left": 268,
+          "top": 59,
+          "width": 119,
+          "height": 280,
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "name": "Master Bedroom 2",
+      "areas": [
+        {
+          "name": "masterBedroom2",
+          "left": 388,
+          "top": 58,
+          "width": 163,
+          "height": 281,
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "name": "Master Bedroom 1",
+      "areas": [
+        {
+          "name": "masterBedroom1",
+          "left": 551,
+          "top": 59,
+          "width": 180,
+          "height": 280,
+          "color": "yellow"
+        }
+      ]
+    },
+    {
+      "name": "Guest Bathroom",
+      "areas": [
+        {
+          "name": "guestBathroom",
+          "left": 80,
+          "top": 337,
+          "width": 189,
+          "height": 134,
+          "color": "purple"
+        }
+      ]
+    },
+    {
+      "name": "Kitchen",
+      "areas": [
+        {
+          "name": "kitchen",
+          "left": 552,
+          "top": 341,
+          "width": 180,
+          "height": 131,
+          "color": "orange"
+        }
+      ]
+    }
+  ]
+}
+{
+  "_id": {
+    "$oid": "677e5087d8db459f1b7f07f6"
+  },
+  "house_id": "house-002",
+  "house_name": "House 2",
+  "rooms_image": "/images/Layout.jpg",
+  "rooms": [
+    {
+      "name": "Bedroom",
+      "areas": [
+        {
+          "name": "bedroom",
+          "left": 215,
+          "top": 100,
+          "width": 198,
+          "height": 120,
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "name": "Kitchen",
+      "areas": [
+        {
+          "name": "kitchen",
+          "left": 218,
+          "top": 220,
+          "width": 195,
+          "height": 197,
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "name": "Living Room",
+      "areas": [
+        {
+          "name": "livingroom",
+          "left": 413,
+          "top": 100,
+          "width": 200,
+          "height": 315,
+          "color": "red"
+        }
+      ]
+    }
+  ]
+}
+{
+  "_id": {
+    "$oid": "677e5092d8db459f1b7f07f7"
+  },
+  "house_id": "house-003",
+  "house_name": "House 3",
+  "rooms_image": "/image2.jpg",
+  "rooms": [
+    {
+      "name": "Bedroom",
+      "areas": [
+        {
+          "name": "bedroom",
+          "left": 83,
+          "top": 61,
+          "width": 185,
+          "height": 278,
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "name": "Open Area",
+      "areas": [
+        {
+          "name": "openArea",
+          "left": 268,
+          "top": 59,
+          "width": 119,
+          "height": 280,
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "name": "Master Bedroom 2",
+      "areas": [
+        {
+          "name": "masterBedroom2",
+          "left": 388,
+          "top": 58,
+          "width": 163,
+          "height": 281,
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "name": "Master Bedroom 1",
+      "areas": [
+        {
+          "name": "masterBedroom1",
+          "left": 551,
+          "top": 59,
+          "width": 180,
+          "height": 280,
+          "color": "yellow"
+        }
+      ]
+    },
+    {
+      "name": "Guest Bathroom",
+      "areas": [
+        {
+          "name": "guestBathroom",
+          "left": 80,
+          "top": 337,
+          "width": 189,
+          "height": 134,
+          "color": "purple"
+        }
+      ]
+    },
+    {
+      "name": "Kitchen",
+      "areas": [
+        {
+          "name": "kitchen",
+          "left": 552,
+          "top": 341,
+          "width": 180,
+          "height": 131,
+          "color": "orange"
+        }
+      ]
+    }
+  ]
+}
+{
+  "_id": {
+    "$oid": "677e50a6d8db459f1b7f07f8"
+  },
+  "house_id": "house-004",
+  "house_name": "House 4",
+  "rooms_image": "/image2.jpg",
+  "rooms": [
+    {
+      "name": "Bedroom",
+      "areas": [
+        {
+          "name": "bedroom",
+          "left": 83,
+          "top": 61,
+          "width": 185,
+          "height": 278,
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "name": "Open Area",
+      "areas": [
+        {
+          "name": "openArea",
+          "left": 268,
+          "top": 59,
+          "width": 119,
+          "height": 280,
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "name": "Master Bedroom 2",
+      "areas": [
+        {
+          "name": "masterBedroom2",
+          "left": 388,
+          "top": 58,
+          "width": 163,
+          "height": 281,
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "name": "Master Bedroom 1",
+      "areas": [
+        {
+          "name": "masterBedroom1",
+          "left": 551,
+          "top": 59,
+          "width": 180,
+          "height": 280,
+          "color": "yellow"
+        }
+      ]
+    },
+    {
+      "name": "Guest Bathroom",
+      "areas": [
+        {
+          "name": "guestBathroom",
+          "left": 80,
+          "top": 337,
+          "width": 189,
+          "height": 134,
+          "color": "purple"
+        }
+      ]
+    },
+    {
+      "name": "Kitchen",
+      "areas": [
+        {
+          "name": "kitchen",
+          "left": 552,
+          "top": 341,
+          "width": 180,
+          "height": 131,
+          "color": "orange"
+        }
+      ]
+    }
+  ]
+}
+3. Rooms Structure
+{
+  "_id": {
+    "$oid": "677e5131d8db459f1b7f07f9"
+  },
+  "house_id": "house-001",
+  "rooms": [
+    {
+      "room_name": "Kitchen",
+      "images": [
+        {
+          "image_path": "/images/kitchen.jpg",
+          "color_categories": [
+            {
+              "key": "cabinet_colors",
+              "label": "Cabinet Colors",
+              "selected_color": "#FFD700",
+              "colors": [
+                {
+                  "color": "#D2B48C",
+                  "image": "/images/kitchenCabinet1.jpg"
+                },
+                {
+                  "color": "#FFD700",
+                  "image": "/images/kitchenCabinet2.jpg"
+                },
+                {
+                  "color": "#E37383",
+                  "image": "/images/kitchenCabinet3.jpg"
+                }
+              ]
+            },
+            {
+              "key": "wall_colors",
+              "label": "Wall Colors",
+              "selected_color": "#c8bca6",
+              "colors": [
+                {
+                  "color": "#b0c8bf",
+                  "image": "/images/Wall1.jpg"
+                },
+                {
+                  "color": "#FFB6C1",
+                  "image": "/images/Wall2.jpg"
+                },
+                {
+                  "color": "#c8bca6",
+                  "image": "/images/Wall3.jpg"
+                }
+              ]
+            },
+            {
+              "key": "basin_colors",
+              "label": "Basin Colors",
+              "colors": [
+                {
+                  "color": "#C0C0C0",
+                  "image": "/images/kitchen.jpg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{
+  "_id": {
+    "$oid": "677e513cd8db459f1b7f07fa"
+  },
+  "house_id": "house-002",
+  "rooms": [
+    {
+      "room_name": "Kitchen",
+      "images": [
+        {
+          "image_path": "/images/Kitchen img.jpg",
+          "color_categories": [
+            {
+              "key": "cabinet_colors",
+              "label": "Cabinet Colors",
+              "selected_color": "#e39950",
+              "colors": [
+                {
+                  "color": "#baaf45",
+                  "image": "/images/H2 kitchen green.jpg"
+                },
+                {
+                  "color": "#e39950",
+                  "image": "/images/H2 kitchen orange.jpg"
+                },
+                {
+                  "color": "#95a4db",
+                  "image": "/images/H2 kitchen purple.jpg"
+                }
+              ]
+            },
+            {
+              "key": "wall_colors",
+              "label": "Wall Colors",
+              "selected_color": "#eec7c2",
+              "colors": [
+                {
+                  "color": "#b8d5d9",
+                  "image": "/images/H2 Kitchen BlueWall.jpg"
+                },
+                {
+                  "color": "#eec7c2",
+                  "image": "/images/H2 Kitchen PinkWall.jpg"
+                },
+                {
+                  "color": "#ccdac1",
+                  "image": "/images/H2 Kitchen PistaWall.jpg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "room_name": "Living Room",
+      "images": [
+        {
+          "image_path": "/images/LivingRoom.jpg",
+          "color_categories": [
+            {
+              "key": "wall_colors",
+              "label": "Wall Colors",
+              "selected_color": "#d3c5ff",
+              "colors": [
+                {
+                  "color": "#afdc8b",
+                  "image": "/images/H2 Living Room Wall Green.jpg"
+                },
+                {
+                  "color": "#d3c5ff",
+                  "image": "/images/H2 Living Room Wall Purple.jpg"
+                },
+                {
+                  "color": "#93ece8",
+                  "image": "/images/H2 Living Room Wall SkyBlue.jpg"
+                }
+              ]
+            },
+            {
+              "key": "ceiling_colors",
+              "label": "Ceiling Colors",
+              "selected_color": "#ffaead",
+              "colors": [
+                {
+                  "color": "#eed725",
+                  "image": "/images/H2 Living Room Ceiling Yellow.jpg"
+                },
+                {
+                  "color": "#ffaead",
+                  "image": "/images/H2 Living Room Ceiling Pink.jpg"
+                },
+                {
+                  "color": "#ffaf5d",
+                  "image": "/images/H2 Living Room Ceiling Orange.jpg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "room_name": "Bedroom",
+      "images": [
+        {
+          "image_path": "/images/Bed Room.jpg",
+          "color_categories": [
+            {
+              "key": "wall_colors",
+              "label": "Wall Colors",
+              "selected_color": "#F3BAB3",
+              "colors": [
+                {
+                  "color": "#CFBFE3",
+                  "image": "/images/Bed Room Purple.jpg"
+                },
+                {
+                  "color": "#F3BAB3",
+                  "image": "/images/Bed Room Pink.jpg"
+                },
+                {
+                  "color": "#C5CAB4",
+                  "image": "/images/Bed Room Pista.jpg"
+                }
+              ]
+            },
+            {
+              "key": "wardrobe_colors",
+              "label": "Wardrobe Colors",
+              "selected_color": "#ecdf76",
+              "colors": [
+                {
+                  "color": "#e8ecbe",
+                  "image": "/images/bed1.jpg"
+                },
+                {
+                  "color": "#ecdf76",
+                  "image": "/images/bed2.jpg"
+                },
+                {
+                  "color": "#a6ebf2",
+                  "image": "/images/bed3.jpg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+4.user UserSelection
+{
+  "_id": {
+    "$oid": "677e503ff7ad562af2b5de5f"
+  },
+  "house_id": "house-001",
+  "session_id": "5f671485-5e93-44a5-b9af-f0992435d6fb",
+  "basin_colors": [],
+  "cabinet_colors": [],
+  "selected_rooms": [
+    "Kitchen"
+  ],
+  "wall_colors": "/images/Wall3.jpg"
+}
+
+
+2. Documentation And Review
+
+  house  collection - use to store all available houses 
+    {
+      "house_id": <string> #used as unique identifier for each house. 
+      "house_name": <string> # human readble,
+      "house_image": <img src> #"/house1.jpg" # used to display images of a respective house,
+      "description": <char> "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors." #to describe the house,
+      "locked": <string> null # to check the status of a house    },
+
+  layout  collection - use to store all available layout for a respective Houses
+
+  {
+  "house_id": <string> #used as unique identifier for each house. #"house-001",
+  "house_name":  <string> # human readble, "House 1",
+  "rooms_image": <img src>  # used to display images of Layout of a respective house, "/image2.jpg",
+  "rooms":  [] # It contains array of rooms in a house . #["Bed Room", "Kitchen", "Living Room"],
+  {
+  "name": <char>"Bedroom", # name of the room that user can select from the layout.
+  "areas": <string> # to store the area of the room , which is used for hovering effect.[
+        {
+          "name": <char> "bedroom", # the name of the room in the layout
+          "left": <int> 83, # A value of 83 means that the left edge of this area is positioned 83 units from the left side of the container.
+          "top": <int> 61, # A value of 61 means that the top edge of this area is positioned 61 units from the top side.
+          "width": <int> 185, # A width of 185 means the area extends 185 units to the right from the left position.
+          "height": <int> 278, # A height of 278 means the area extends 278 units down from the top position.
+          "color": <char> "red" # The color attribute, in this case, defines the color of the area when it is being hovered over. Here, the area is colored "red" during the hover action.
+        }
+  ]
+  }
+},
+
+Rooms Collection -use to store all available rooms for a respective house.
+{
+     "house_id": <string> #used as unique identifier for each house. #"house-001",
+     "rooms": [],This is an array containing room details within the house. Each room is represented as an object with its own attributes.
+        {
+            "room_name": <char> This is the name of the room in the house. 
+            "images": [] #This is an array of image objects related to the room. Each image object contains information about the image itself, as well as any related color categories.
+            {
+              "image_path": <img> # This specifies the path to an image associated with the room.
+              "color_categories": [ # This is an array of color categories related to the room's design or styling. 
+                {
+                  "key": <str> #This is a unique identifier for the color category "cabinet_colors",
+                  "label": <str> #This is a user-friendly label describing the color category. "Cabinet Colors",
+                  "selected_color": <str> #This specifies the currently selected color for the cabinet. "#FFD700",
+                  "colors": <array> [ This is an array of available color options for the cabinet.
+                   The first color option:
+                    "color": <hex> # code of a colour "#D2B48C" .
+                    "image": <img src> #path of an image to display the img when the respective color is clicked "/images/kitchenCabinet1.jpg" (an image showing the kitchen cabinets in this color).
+                    .second
+                    .third
+                    .
+                  ]
+                },
+                {
+                  "key": <str> #This is a unique identifier for the color category "wall_colors",
+                  "label": <str> #This is a user-friendly label describing the color category. "Wall Colors",
+                  "selected_color": <str> #This specifies the currently selected color for the wall. "#FFD700",
+                  "colors": [
+                    The first color option:
+                    "color": <hex> # code of a colour "#D2B48C".
+                    "image": <img src> #path of an image to display the img when the respective color is clicked "/images/kitchenCabinet1.jpg" (an image showing the kitchen cabinets in this color).
+                    .second
+                    .third
+                    
+                  ]
+                },
+                {
+                  "key":  <str> #This is a unique identifier for the color category "basin_colors_colors",
+                  "label": <str> #This is a user-friendly label describing the color category. "Basin Colors",
+                  "selected_color": <str> #This specifies the currently selected color for the Basin. "#FFD700",
+                  "colors": [
+                    The first color option:
+                    "color": <hex> # code of a colour "#D2B48C".
+                    "image":  <img src> #path of an image to display the img when the respective color is clicked "/images/kitchenCabinet1.jpg" (an image showing the kitchen cabinets in this color).
+                    .third
+                    
+                  ]
+                }
+              ]
+            }
+        }    
+}
+
+
+3. list of the API in simple documentation and how API interacts 
+1.
+   GET/houses - used to retrive all available houses which are not locked from houses collection
+   excepted parameters on session_id 
+   excepted output 
+        [
+              {
+      "house_id": <string> #used as unique identifier for each house. 
+      "house_name": <string> # human readble,
+      "house_image": "/house1.jpg",
+      "description": "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors.",
+    }
+...
+]
+2.
+  POST/Select-house -used to store the selected house in the session
+  excepted parameters on session_id,house_id
+  excepted output 
+  [
+    {
+        "message": <string> "House selected successfully", #human raedable
+        "session_id":<str> session_id, #to pass the session id
+        "house_id": <str> house_id, # to pass the house id
+    }
+  ]
+
+3. 
+  
+
+
+
+ 
+
