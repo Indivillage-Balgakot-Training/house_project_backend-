@@ -709,6 +709,102 @@ Rooms Collection -use to store all available rooms for a respective house.
   ]
 
 3. 
+  POST/exit - Used to unlock houses and end the session
+  excepted parameters on session_id,house_id
+  excepted output
+  [ 
+  {
+    "message": <string> "House unlocked and session ended",  # Human-readable message indicating success
+  }
+ ]
+
+
+4.
+ GET/rooms/<house_id> - Used to get the rooms and layout image for a specific house
+ excepted parameters on house_id
+ excepted output 
+ [
+ {
+    "rooms_image": <img src>  # used to display images of Layout of a respective house, "/image2.jpg",
+     "rooms":  [] # It contains array of rooms in a house . #["Bed Room", "Kitchen", "Living Room"],
+
+ }
+ ] 
+
+
+ 5.
+   GET /room-data_dev - used to retrieves detailed room data for a specific house, including information about images and color categories for a particular room within that house.
+   excepted parameters on house_id, room_name
+   excepted output
+
+   {
+    "room_name": "<string>",  # The name of the room (e.g., Living Room)
+    "images":
+         [  # List of images related to the room
+        {
+            "image_path": "<string>",  # Path to the image
+            "color_categories": [  # List of color categories for the image
+                {
+                    "key": "<string>",  # Key for the color category
+                    "label": "<string>",  # Label for the color category
+                    "selected_color": "<string>",  # Selected color for the category (optional)
+                    "colors": "<string>",  # A color in the category
+                    [  
+                      # List of color options for the category
+                     ...
+                    ]
+                },
+                ...
+            ]
+        },
+        ...
+    ]
+}
+
+
+6.
+  POST /select-room - used to store the  select rooms and also update the preferences (such as color choices) for the selected rooms in a specific house for the current user.
+  excepted parameters on house_id, session_id, selected_rooms
+  excepted output
+  [
+  {
+    "message":  <string> "Room selection updated successfully"  # Success message if the operation is completed.
+  }
+  ]
+  
+
+7. GET /user-selection - used to  retrieves the room selections and preferences made by a user for a specific house.
+   excepted parameters on house_id, session_id
+   excepted output
+   {
+    "selected_rooms":
+        [  # List of rooms selected by the user
+        {
+            "room_name": "<string>",  # Name of the room (e.g., Living Room)
+            "room_id": "<string>"     # Unique identifier for the room
+        },
+        ...
+    ],
+    "<preference_category>": [  # Dynamically added preferences based on user selection
+        "<preference_value>",     # Example: Color or other preference choices
+        ...
+    ]
+}
+
+
+   
+   
+ 
+
+
+
+  
+   
+
+
+ 
+
+  
   
 
 
