@@ -800,6 +800,120 @@ House Collection - use to store all and not available houses
     ]
 }
 
+What Payload request ?
+
+Gallery page 
+
+Request-
+This request is sent when a user selects a house, in this case user selected house 1.
+{house_id: "house-001"}
+house_id: "house-001"
+
+Response-
+this says that house was selected successfully, returns house_id also session_id to user interaction.
+{
+  "house_id": "house-001",
+  "message": "House selected successfully",
+  "session_id": "651599ff-f9b1-498c-af2f-27600492fb27"
+}
+
+Layout Page
+
+house_id: house-001
+house_name: House 1
+session_id: 0c278465-7036-4b17-981f-e73fc039ef06
+
+Rooms page
+
+kitchen 
+when the Page loads 
+Request- this is house_id of the user and current session_id to interact, along with current room. 
+house_id: house-001
+session_id: 7aa897f4-b50d-4e92-b331-173e40dd3742
+room_name: Kitchen
+
+Response- It gives a list of color categories that is Cabinet Colors, Wall Colors, Basin Colors for the kitchen, 
+         along with the images with respective colors.
+{
+  "images": [
+    {
+      "color_categories": [
+        {
+          "colors": [
+            {
+              "color": "#D2B48C",
+              "image": "/images/kitchenCabinet1.jpg"
+            },
+            {
+              "color": "#FFD700",
+              "image": "/images/kitchenCabinet2.jpg"
+            },
+            {
+              "color": "#E37383",
+              "image": "/images/kitchenCabinet3.jpg"
+            }
+          ],
+          "key": "cabinet_colors",
+          "label": "Cabinet Colors",
+          "selected_color": "#FFD700"
+        },
+        {
+          "colors": [
+            {
+              "color": "#b0c8bf",
+              "image": "/images/Wall1.jpg"
+            },
+            {
+              "color": "#FFB6C1",
+              "image": "/images/Wall2.jpg"
+            },
+            {
+              "color": "#c8bca6",
+              "image": "/images/Wall3.jpg"
+            }
+          ],
+          "key": "wall_colors",
+          "label": "Wall Colors",
+          "selected_color": "#c8bca6"
+        },
+        {
+          "colors": [
+            {
+              "color": "#C0C0C0",
+              "image": "/images/kitchen.jpg"
+            }
+          ],
+          "key": "basin_colors",
+          "label": "Basin Colors",
+          "selected_color": ""
+        }
+      ],
+      "image_path": "/images/kitchen.jpg"
+    }
+  ],
+  "room_name": "Kitchen"
+}
+
+
+when user selects
+{house_id: "house-001", session_id: "7aa897f4-b50d-4e92-b331-173e40dd3742",…}
+house_id
+: 
+"house-001"
+preferences
+: 
+{cabinet_colors: "/images/kitchenCabinet3.jpg", wall_colors: "/images/Wall1.jpg"}
+selected_rooms
+: 
+["Kitchen"]
+session_id
+: 
+"7aa897f4-b50d-4e92-b331-173e40dd3742"
+
+Response-
+{
+  "message": "Room selection updated successfully"
+}
 
    
    
