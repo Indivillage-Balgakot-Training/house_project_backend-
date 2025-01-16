@@ -107,7 +107,7 @@ Totally 2 Collection
 1.
    GET/houses - User requests house list
 
-   excepted parameters on session_id 
+  Expected Parameters: session_id 
 
    Request sends (frontend)
 
@@ -120,7 +120,7 @@ Totally 2 Collection
    
   get_houses function ( Backend )
 
-   GET/houses -when the frontend makes request it fetches the data from the database and sends the data in json format to the frontend
+   GET/houses -when the frontend makes request it fetches the houses from the database and if house is locked it does not fetch the house and sends the data in json format to the frontend
 
    (Frontend) 
 
@@ -136,4 +136,41 @@ Totally 2 Collection
     }
 ...
 ]
+ 
+
+ 2. 
+   POST /select-house - 
+  
+   Expected Parameters: session_id , house_id
+   
+   
+  Request Flow (Frontend):
+  User Interaction: Available houses are displayed .The user selects a house by clicking on an image. 
+   
+  Sending Request:
+  The frontend then makes a POST request to the backend with the selected house's house_id.
+             const response = await fetch('http://127.0.0.1:5000/select-house') 
+ - This sends a POST request to the backend with the selected house ID and the session ID.
+
+
+  Backend Flow (get_house function):
+  When the backend receives the request with the house ID, it performs the following: 
+    ->Session Id  # It is used to keep the track of the user.
+    ->House Lock  # it locks the house for the current session and returns a success response with the session_id and house_id.
+    ->Locked at # Its displayed the date and time of that house locked.
+    
+
+     Expected Output (Payload): 
+      Success Response:
+        {
+       "house_id": "house-001",
+       "message": "House selected successfully",
+       "session_id": "c6222e6a-12d3-4643-96a4-d9df5da5646c"
+        }
+
+ 
+
+
+
+
 
