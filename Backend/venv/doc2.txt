@@ -111,7 +111,7 @@ Totally 2 Collection
    User Interaction: When the GalleryPage component is loaded, it will make a GET request to the backend using this HTTP link(http://127.0.0.1:5000/houses).
     const response = await fetch('http://127.0.0.1:5000/houses'); #This sends an HTTP GET request to the backend, asking for the house data.
 
-   when the frontend makes request it fetches the houses from the database and 
+   when the frontend makes request it fetches the houses from the database using API @app.route('/houses', methods=['GET']) and 
    if house is locked it does not fetch the house and sends the data in json format to the frontend.
 
     Fetching Data: Inside the useEffect hook, the code calls the JSON format to fetch Houses from the backend.
@@ -142,7 +142,7 @@ Totally 2 Collection
   Sending Request:
   The frontend then makes a POST request to the backend with the selected house's house_id.
              const response = await fetch('http://127.0.0.1:5000/select-house') 
- - This sends a POST request to the backend with the selected house ID and the session ID.
+ - This sends a POST request to the backend with @app.route('/select-house', methods=['POST']) the selected house ID and the session ID.
 
 
   Backend Flow (get_house function):
@@ -164,10 +164,8 @@ Totally 2 Collection
   "session_id": "4396eba3-1aa9-4143-8d05-8e34d680121e"
 }
 
- 
 
-
-4.GET method for Layout - Used to get the layout image for a specific house
+3.GET method for Layout - Used to get the layout image for a specific house
 
  excepted parameters on house_id and session_id.
 
@@ -176,7 +174,7 @@ Totally 2 Collection
   const layoutResponse = await fetch(`http://localhost:5000/rooms/${houseId}`); #This sends an HTTP GET request to the backend, asking for the layout 
   information for the house.
 
-   when the frontend makes request it fetches the layouts of a specific houses from the database.
+   when the frontend makes request it fetches the layouts of a specific houses from the API @app.route('/rooms/<house_id>', methods=['GET']) database.
 
    Fetching Data: Inside the useEffect hook, the code calls the fetchlayout function to fetch the layout data from the backend.
 
@@ -240,10 +238,78 @@ Display room details based on user selection.
   "rooms_image": "/images/layout.jpg"
 }
 
- 
+4. GET method for Rooms 
+
+ excepted parameters on house_id and session_id and roomName.
+
+  User Interaction: When the RoomPage component is loaded, it will make a GET request to the backend using this link
+                    (`http://localhost:5000/room-data_dev?house_id=${houseId}&session_id=${sessionId}&room_name=${roomName}`).
 
 
-  6. POST /select-room -  Update Room Preferences
+  const response = await fetch(`http://localhost:5000/room-data_dev?house_id=${houseId}&session_id=${sessionId}&room_name=${roomName}`);#This sends 
+  an HTTP GET request to the backend, asking for the rooms information for the house.
+
+   when the frontend makes request it fetches the rooms of a specific houses from the API @app.route('/room-data_dev', methods=['GET']) database.
+
+   Fetching Data: Inside the useEffect hook, the code calls the fetchroomData function to fetch the room data from the backend.
+
+
+  Purpose:
+  RoomPage allows users to view and customize a specific room within a house. The user can select different color options for categories 
+  in the room, means wall color, wardrobe color etc, and these preferences are sent to backend.
+
+  Response
+  {
+  "images": [
+    {
+      "color_categories": [
+        {
+          "colors": [
+            {
+              "color": "#afdc8b",
+              "image": "/images/H2 Living Room Wall Green.jpg"
+            },
+            {
+              "color": "#d3c5ff",
+              "image": "/images/H2 Living Room Wall Purple.jpg"
+            },
+            {
+              "color": "#93ece8",
+              "image": "/images/H2 Living Room Wall SkyBlue.jpg"
+            }
+          ],
+          "key": "wall_colors",
+          "label": "Wall Colors",
+          "selected_color": "#d3c5ff"
+        },
+        {
+          "colors": [
+            {
+              "color": "#eed725",
+              "image": "/images/H2 Living Room Ceiling Yellow.jpg"
+            },
+            {
+              "color": "#ffaead",
+              "image": "/images/H2 Living Room Ceiling Pink.jpg"
+            },
+            {
+              "color": "#ffaf5d",
+              "image": "/images/H2 Living Room Ceiling Orange.jpg"
+            }
+          ],
+          "key": "ceiling_colors",
+          "label": "Ceiling Colors",
+          "selected_color": "#ffaead"
+        }
+      ],
+      "image_path": "/images/LivingRoom.jpg"
+    }
+  ],
+  "room_name": "Living Room"
+}
+
+
+  5. POST /select-room -  Update Room Preferences
 
      Expected Parameters: session_id, house_id , selected_rooms 
 
@@ -252,7 +318,7 @@ Display room details based on user selection.
       -> Upon selecting their preferred choices, the frontend will send a request to the backend to update the preferences for the selected room.
 
      Sending Request:
-     -> The frontend then sends a POST request to the backend with the following data:
+     -> The frontend then sends a POST request to the backend with @app.route('/select-room', methods=['POST']) the following data:
               - house_id: The ID of the selected house.
               - session_id: The ID of the user session.
               - selected_rooms: A list of rooms the user has selected.
@@ -277,7 +343,6 @@ Display room details based on user selection.
     {
   "message": "Room selection updated successfully"
 
-  sachin
 }
 
 
