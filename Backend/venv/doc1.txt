@@ -104,29 +104,21 @@ Totally 2 Collection
 
 3. list of the API in simple documentation and how API interacts 
 
-1.
-   GET/houses - User requests house list
+1. GET method for houses 
 
   Expected Parameters: session_id 
 
-   Request sends (frontend)
+   User Interaction: When the GalleryPage component is loaded, it will make a GET request to the backend using this HTTP link(http://127.0.0.1:5000/houses).
+    const response = await fetch('http://127.0.0.1:5000/houses'); #This sends an HTTP GET request to the backend, asking for the house data.
 
-   User Interaction: When the GalleryPage component is loaded, it will make a GET request to the backend (http://127.0.0.1:5000/houses).
+   when the frontend makes request it fetches the houses from the database and 
+   if house is locked it does not fetch the house and sends the data in json format to the frontend.
 
-   Fetching Data: Inside the useEffect hook, the code calls the fetchHouses function to fetch the house data from the backend.
+    Fetching Data: Inside the useEffect hook, the code calls the JSON format to fetch Houses from the backend.
 
-   const response = await fetch('http://127.0.0.1:5000/houses'); #This sends an HTTP GET request to the backend, asking for the house data.
+  The received json format data is displayed in user interface.
 
-   
-  get_houses function ( Backend )
-
-   GET/houses -when the frontend makes request it fetches the houses from the database and if house is locked it does not fetch the house and sends the data in json format to the frontend
-
-   (Frontend) 
-
-   The received json format data is displayed in user interface  .
-   
-   excepted output (Payload)
+   excepted output (Response)
         [
               {
       "house_id": <string> #used as unique identifier for each house. 
@@ -171,6 +163,77 @@ Totally 2 Collection
  
 
 
+4.GET method for Layout - Used to get the layout image for a specific house
+
+ excepted parameters on house_id and session_id.
+
+  User Interaction: When the LayoutPage component is loaded, it will make a GET request to the backend (`http://localhost:5000/rooms/${houseId}`).
+
+  const layoutResponse = await fetch(`http://localhost:5000/rooms/${houseId}`); #This sends an HTTP GET request to the backend, asking for the layout 
+  information for the house.
+
+   when the frontend makes request it fetches the layouts of a specific houses from the database.
+
+   Fetching Data: Inside the useEffect hook, the code calls the fetchlayout function to fetch the layout data from the backend.
+
+  The request is successful, it saves the layout data and the list of rooms into the state.
+
+  LayoutPage allows users to view the layout of rooms in a house. It displays an image showing the house's layout, and also they are clickable areas 
+ having different rooms. Users can hover over these areas to highlight them and click to select a room. When a room is selected, the user goes to 
+ a new page.
+
+ it does not have POST method because it will not send any information to the backend. it uses for navigation of page.
+
+Purpose:
+To show how house layout looks.
+Allow users to select and navigate between different rooms within the house.
+Display room details based on user selection.
 
 
+ Response
+ {
+  "rooms": [
+    {
+      "areas": [
+        {
+          "color": "blue",
+          "height": 120,
+          "left": 215,
+          "name": "bedroom",
+          "top": 100,
+          "width": 198
+        }
+      ],
+      "name": "Bedroom"
+    },
+    {
+      "areas": [
+        {
+          "color": "green",
+          "height": 197,
+          "left": 218,
+          "name": "kitchen",
+          "top": 220,
+          "width": 195
+        }
+      ],
+      "name": "Kitchen"
+    },
+    {
+      "areas": [
+        {
+          "color": "red",
+          "height": 315,
+          "left": 413,
+          "name": "livingroom",
+          "top": 100,
+          "width": 200
+        }
+      ],
+      "name": "Living Room"
+    }
+  ],
+  "rooms_image": "/images/layout.jpg"
+}
 
+ 
