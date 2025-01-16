@@ -1,0 +1,139 @@
+MongoDB Structure 
+Totally 2 Collection
+1. house collection 
+2. UserSelection
+
+
+2. Documentation And Review
+
+  
+1. House Collection - use to store all and not available houses
+
+    {
+
+      "house_id": <string> #used as unique identifier for each house.
+
+      "house_name": <string> # human readble,
+
+      "house_image": <string> #"/house1.jpg" # used to display images of a respective house,
+
+      "rooms_image": <string> # used to display images of Layout of a respective house, "/image2.jpg",
+
+      "description": <string> "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors." #to describe the house,
+
+      "rooms": <array> [], # array of dictionaries each speficying a room to store room specifics (hovering in layout page, available selection etc)
+
+        {
+
+          "name": <string>  "Bedroom", # the name of the room in the layout
+
+          "image_path": <string> # This specifies the path to an image associated with the room.
+
+          "layout_page_details": # details required to specify the hovering details required for layout pages
+
+            {
+
+              "left": <int> 83, # A value of 83 means that the left edge of this area is positioned 83 units from the left side of the container.
+
+              "top": <int> 61, # A value of 61 means that the top edge of this area is positioned 61 units from the top side.
+
+              "width": <int> 185, # A width of 185 means the area extends 185 units to the right from the left position.
+
+              "height": <int> 278, # A height of 278 means the area extends 278 units down from the top position.
+
+              "color": <string> "red" # The color attribute, in this case, defines the color of the area when it is being hovered over. Here, the area is colored "red" during the hover action.
+
+            },
+
+          "avaialble_selections": <array> [],  # array of dictionaries each speficying selections available for the room
+
+            {
+
+              "key": <string> #This is a unique identifier for the color category "cabinet_colors",
+
+              "label": <string> # This is a user-friendly label describing the color category. "Cabinet Colors",              
+
+              "colors": <array> [] #, This is an array of available color options for the cabinet.
+
+                   {
+
+                    "color": <string> # code of a colour "#D2B48C" .
+
+                    "image": <string> #path of an image to display the img when the respective color is clicked "/images/kitchenCabinet1.jpg" (an image showing the kitchen cabinets in this color)
+
+                    }
+
+             
+
+            }
+
+     },
+
+     {
+
+     "locked": <bollean> null # to check the status of a house ,
+
+      "locked_at" : <boolean> 
+     }
+
+
+2. User selection
+     {
+      #user selection
+
+      "house_id": <string> house-001; #used as unique identifier for each house. This is used to store the selected house in the database.  
+
+      "session_id":<srting> session-001; #used as unique identifier for each session. This is used to store the selected session_id in the database.
+
+      "selected_rooms":<string> "Bedroom"; #the selected room in the layout to store in the database.
+
+      "basin_colors":<string> "blue"; #the selected color for the basin to store in the database.
+
+      "cabinet_colors":<string>  "red"; #the selected color for the cabinet to store in the database.
+
+      "wall_colors":<string> "green"; #the selected color for the wall to store in the database.
+
+      "ceiling_colors":<string> "yellow"; #the selected color for the ceiling to store in the database.
+
+      "wardrobe_colors":<string> "purple"; #the selected color for the wardrobe to store in the database.
+
+      
+     } 
+
+    }
+
+3. list of the API in simple documentation and how API interacts 
+
+1.
+   GET/houses - User requests house list
+
+   excepted parameters on session_id 
+
+   Request sends (frontend)
+
+   User Interaction: When the GalleryPage component is loaded, it will make a GET request to the backend (http://127.0.0.1:5000/houses).
+
+   Fetching Data: Inside the useEffect hook, the code calls the fetchHouses function to fetch the house data from the backend.
+
+   const response = await fetch('http://127.0.0.1:5000/houses'); #This sends an HTTP GET request to the backend, asking for the house data.
+
+   
+  get_houses function ( Backend )
+
+   GET/houses -when the frontend makes request it fetches the data from the database and sends the data in json format to the frontend
+
+   (Frontend) 
+
+   The received json format data is displayed in user interface  .
+   
+   excepted output (Payload)
+        [
+              {
+      "house_id": <string> #used as unique identifier for each house. 
+      "house_name": <string> # human readble,
+      "house_image": "/house1.jpg",
+      "description": "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors.",
+    }
+...
+]
+
