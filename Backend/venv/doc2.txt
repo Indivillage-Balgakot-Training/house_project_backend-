@@ -1,0 +1,286 @@
+MongoDB Structure 
+Totally 2 Collection
+1. house collection 
+2. UserSelection
+
+
+2. Documentation And Review
+
+  
+1. House Collection - use to store all and not available houses
+
+    {
+
+      "house_id": <string> #used as unique identifier for each house.
+
+      "house_name": <string> # human readble,
+
+      "house_image": <string> #"/house1.jpg" # used to display images of a respective house,
+
+      "rooms_image": <string> # used to display images of Layout of a respective house, "/image2.jpg",
+
+      "description": <string> "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors." #to describe the house,
+
+      "rooms": <array> [], # array of dictionaries each speficying a room to store room specifics (hovering in layout page, available selection etc)
+
+        {
+
+          "name": <string>  "Bedroom", # the name of the room in the layout
+
+          "image_path": <string> # This specifies the path to an image associated with the room.
+
+          "layout_page_details": # details required to specify the hovering details required for layout pages
+
+            {
+
+              "left": <int> 83, # A value of 83 means that the left edge of this area is positioned 83 units from the left side of the container.
+
+              "top": <int> 61, # A value of 61 means that the top edge of this area is positioned 61 units from the top side.
+
+              "width": <int> 185, # A width of 185 means the area extends 185 units to the right from the left position.
+
+              "height": <int> 278, # A height of 278 means the area extends 278 units down from the top position.
+
+              "color": <string> "red" # The color attribute, in this case, defines the color of the area when it is being hovered over. Here, the area is colored "red" during the hover action.
+
+            },
+
+          "avaialble_selections": <array> [],  # array of dictionaries each speficying selections available for the room
+
+            {
+
+              "key": <string> #This is a unique identifier for the color category "cabinet_colors",
+
+              "label": <string> # This is a user-friendly label describing the color category. "Cabinet Colors",              
+
+              "colors": <array> [] #, This is an array of available color options for the cabinet.
+
+                   {
+
+                    "color": <string> # code of a colour "#D2B48C" .
+
+                    "image": <string> #path of an image to display the img when the respective color is clicked "/images/kitchenCabinet1.jpg" (an image showing the kitchen cabinets in this color)
+
+                    }
+
+             
+
+            }
+
+     },
+
+     {
+
+     "locked": <bollean> null # to check the status of a house ,
+
+      "locked_at" : <boolean> 
+     }
+
+
+2. User selection
+     {
+      #user selection
+
+      "house_id": <string> house-001; #used as unique identifier for each house. This is used to store the selected house in the database.  
+
+      "session_id":<srting> session-001; #used as unique identifier for each session. This is used to store the selected session_id in the database.
+
+      "selected_rooms":<string> "Bedroom"; #the selected room in the layout to store in the database.
+
+      "basin_colors":<string> "blue"; #the selected color for the basin to store in the database.
+
+      "cabinet_colors":<string>  "red"; #the selected color for the cabinet to store in the database.
+
+      "wall_colors":<string> "green"; #the selected color for the wall to store in the database.
+
+      "ceiling_colors":<string> "yellow"; #the selected color for the ceiling to store in the database.
+
+      "wardrobe_colors":<string> "purple"; #the selected color for the wardrobe to store in the database.
+
+      
+     } 
+
+    }
+
+3. list of the API in simple documentation and how API interacts 
+
+1. GET method for houses 
+
+  Expected Parameters: session_id 
+
+   User Interaction: When the GalleryPage component is loaded, it will make a GET request to the backend using this HTTP link(http://127.0.0.1:5000/houses).
+    const response = await fetch('http://127.0.0.1:5000/houses'); #This sends an HTTP GET request to the backend, asking for the house data.
+
+   when the frontend makes request it fetches the houses from the database and 
+   if house is locked it does not fetch the house and sends the data in json format to the frontend.
+
+    Fetching Data: Inside the useEffect hook, the code calls the JSON format to fetch Houses from the backend.
+
+  The received json format data is displayed in user interface.
+
+   excepted output (Response)
+        [
+              {
+      "house_id": <string> #used as unique identifier for each house. 
+      "house_name": <string> # human readble,
+      "house_image": "/house1.jpg",
+      "description": "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors.",
+    }
+...
+]
+ 
+
+ 2. 
+   POST /select-house - 
+  
+   Expected Parameters: session_id , house_id
+   
+   
+  Request Flow (Frontend):
+  User Interaction: Available houses are displayed .The user selects a house by clicking on an image. 
+   
+  Sending Request:
+  The frontend then makes a POST request to the backend with the selected house's house_id.
+             const response = await fetch('http://127.0.0.1:5000/select-house') 
+ - This sends a POST request to the backend with the selected house ID and the session ID.
+
+
+  Backend Flow (get_house function):
+  When the backend receives the request with the house ID, it performs the following: 
+    ->Session Id  # It is used to keep the track of the user.
+    ->House Lock  # it locks the house for the current session and returns a success response with the session_id and house_id.
+    ->Locked at # Its displayed the date and time of that house locked.
+    
+
+     Expected Output (Payload): 
+     
+      {house_id: "house-001"}
+       house_id: "house-001"
+
+       Response:
+       {
+  "house_id": "house-001",
+  "message": "House selected successfully",
+  "session_id": "4396eba3-1aa9-4143-8d05-8e34d680121e"
+}
+
+ 
+
+
+4.GET method for Layout - Used to get the layout image for a specific house
+
+ excepted parameters on house_id and session_id.
+
+  User Interaction: When the LayoutPage component is loaded, it will make a GET request to the backend (`http://localhost:5000/rooms/${houseId}`).
+
+  const layoutResponse = await fetch(`http://localhost:5000/rooms/${houseId}`); #This sends an HTTP GET request to the backend, asking for the layout 
+  information for the house.
+
+   when the frontend makes request it fetches the layouts of a specific houses from the database.
+
+   Fetching Data: Inside the useEffect hook, the code calls the fetchlayout function to fetch the layout data from the backend.
+
+  The request is successful, it saves the layout data and the list of rooms into the state.
+
+  LayoutPage allows users to view the layout of rooms in a house. It displays an image showing the house's layout, and also they are clickable areas 
+ having different rooms. Users can hover over these areas to highlight them and click to select a room. When a room is selected, the user goes to 
+ a new page.
+
+ it does not have POST method because it will not send any information to the backend. it uses for navigation of page.
+
+Purpose:
+To show how house layout looks.
+Allow users to select and navigate between different rooms within the house.
+Display room details based on user selection.
+
+
+ Response
+ {
+  "rooms": [
+    {
+      "areas": [
+        {
+          "color": "blue",
+          "height": 120,
+          "left": 215,
+          "name": "bedroom",
+          "top": 100,
+          "width": 198
+        }
+      ],
+      "name": "Bedroom"
+    },
+    {
+      "areas": [
+        {
+          "color": "green",
+          "height": 197,
+          "left": 218,
+          "name": "kitchen",
+          "top": 220,
+          "width": 195
+        }
+      ],
+      "name": "Kitchen"
+    },
+    {
+      "areas": [
+        {
+          "color": "red",
+          "height": 315,
+          "left": 413,
+          "name": "livingroom",
+          "top": 100,
+          "width": 200
+        }
+      ],
+      "name": "Living Room"
+    }
+  ],
+  "rooms_image": "/images/layout.jpg"
+}
+
+ 
+
+
+  6. POST /select-room -  Update Room Preferences
+
+     Expected Parameters: session_id, house_id , selected_rooms 
+
+     User Interaction: 
+      -> The user is presented with a room interface, where they can select various rooms and customize their preferences.
+      -> Upon selecting their preferred choices, the frontend will send a request to the backend to update the preferences for the selected room.
+
+     Sending Request:
+     -> The frontend then sends a POST request to the backend with the following data:
+              - house_id: The ID of the selected house.
+              - session_id: The ID of the user session.
+              - selected_rooms: A list of rooms the user has selected.
+              - preferences: The user's selected preferences (such as colors or other preferences for the rooms).
+
+     When the backend receives the POST request, it performs the following steps:
+    -> Session Handling:The backend extracts the session_id and verifies it to ensure that the request comes from a valid user session.
+    -> Room Selection and Preferences Update: The backend receives the house_id, session_id, selected_rooms, and preferences.
+    -> Database Update: The selected_rooms and preferences are stored in the database using the provided session_id and house_id.
+    
+     Expected Output (Payload): 
+
+    {house_id: "house-001", session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c",…}
+    house_id: "house-001"
+    preferences: {cabinet_colors: "/images/kitchenCabinet2.jpg"}
+    cabinet_colors: "/images/kitchenCabinet2.jpg"
+      selected_rooms: ["Kitchen"]: 
+       0 :"Kitchen"
+    session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c"
+
+    response:
+    {
+  "message": "Room selection updated successfully"
+
+  sachin
+}
+
+
+              
+     
+     
