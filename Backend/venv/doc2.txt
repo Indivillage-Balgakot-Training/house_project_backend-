@@ -71,13 +71,13 @@ Totally 2 Collection
 
      {
 
-     "locked": <boolean> null # to check the status of a house ,
+     "locked": <bollean> null # to check the status of a house ,
 
       "locked_at" : <boolean> 
      }
 
 
-2. User selection- This is store all the data entered by a user 
+2. User selection
      {
       #user selection
 
@@ -144,6 +144,8 @@ Totally 2 Collection
              const response = await fetch('http://127.0.0.1:5000/select-house') 
  - This sends a POST request to the backend with @app.route('/select-house', methods=['POST']) the selected house ID and the session ID.
 
+
+  Backend Flow (get_house function):
   When the backend receives the request with the house ID, it performs the following: 
     ->Session Id  # It is used to keep the track of the user.
     ->House Lock  # it locks the house for the current session and returns a success response with the session_id and house_id.
@@ -161,7 +163,6 @@ Totally 2 Collection
   "message": "House selected successfully",
   "session_id": "4396eba3-1aa9-4143-8d05-8e34d680121e"
 }
-
 
 3. The @app.route('/exit', methods=['POST']) method is a POST endpoint designed to unlock any houses that were previously 
    locked by a user and clear the user's session
@@ -399,7 +400,39 @@ Display room details based on user selection.
 
 }
 
+7.GET/ /user-selection : This is used to fetch the data whenever the page is refreshed.
+  
+ Expected Parameters: house_id , session_id 
 
+ Purpose:
+ -> This endpoint retrieves the user's room selections and preferences for a specific house. 
+ -> It returns the selected rooms and any dynamic preferences set by the user for the given house and session.
+ 
+ Response:
+
+ Response Body :
+
+
+{
+  "house_id": "house-001",
+  "session_id": "9d522138-5604-4686-b87e-d51f62a2f63e",
+  "cabinet_colors": "#ff33",
+  "selected_rooms": [
+    "Kitchen"
+  ],
+  "wall_colors": "#ccd4"
+}
+ 
+
+If house_id and session_id is missing the error message displayed below 
+Response Body:
+  {
+  "error": "Missing house_id or session_id"
+}
+
+ If the user doesnot have any previous selections this is message displayed below 
+{
+  "error": "No previous selection found for this house and user"
+}
               
-     
-     
+If there are any  new or modified  selection the database updates. 
