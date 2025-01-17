@@ -71,13 +71,13 @@ Totally 2 Collection
 
      {
 
-     "locked": <bollean> null # to check the status of a house ,
+     "locked": <boolean> null # to check the status of a house ,
 
       "locked_at" : <boolean> 
      }
 
 
-2. User selection
+2. User selection- This is store all the data entered by a user 
      {
       #user selection
 
@@ -144,8 +144,6 @@ Totally 2 Collection
              const response = await fetch('http://127.0.0.1:5000/select-house') 
  - This sends a POST request to the backend with @app.route('/select-house', methods=['POST']) the selected house ID and the session ID.
 
-
-  Backend Flow (get_house function):
   When the backend receives the request with the house ID, it performs the following: 
     ->Session Id  # It is used to keep the track of the user.
     ->House Lock  # it locks the house for the current session and returns a success response with the session_id and house_id.
@@ -165,7 +163,63 @@ Totally 2 Collection
 }
 
 
-3.GET method for Layout - Used to get the layout image for a specific house
+3. The @app.route('/exit', methods=['POST']) method is a POST endpoint designed to unlock any houses that were previously 
+   locked by a user and clear the user's session
+   
+   Expected Parameters: session_id , house_id
+
+   User Action: The user clicks an option or takes an action to exit the website, indicating that they want to unlock any houses they have locked 
+   and end their session.
+   
+   Sending the Request:
+   The frontend sends a POST request to the backend at the /exit endpoint. The request includes 
+   the house_id and the session_id.
+   
+   Data Extraction:
+   The backend extracts the house_id and session_id from the request body using data = request.get_json(). 
+   This allows the server to know which session the user is associated with.
+   
+   Validation:
+   If either house_id or session_id is missing from the request body, 
+   the backend returns a 400 Bad Request error with a message indicating that both parameters are required.
+
+   the below is error message 
+   {
+  "error": "House ID and Session ID are required"
+   }
+  
+  Unlocking Houses:
+   The backend performs a query to find all houses in the database that are currently locked by the session_id.
+   The locked field in the database is used to check which houses are locked by the user.
+   the query related to this would look like below
+   locked_houses = mongo.db.houses.find({"locked": session_id})
+
+   For each house found in the query, the backend updates the house in the database to remove the lock. 
+   This is done by setting the locked field to None and clearing the locked_at field (removes the timestamp of when the house was locked).
+   
+   Clearing the Session:
+   After unlocking the houses, the backend clears the session using session.clear(). 
+   This effectively logs the user out by removing all session-related data.
+
+   Once the houses are unlocked and the session is cleared, the backend responds with a success message: 
+   "House unlocked and session ended" and a 200 OK status code. This indicates that the process was completed successfully.
+
+
+   the response would look like something below
+   {
+  "message": "House unlocked and session ended"
+   }
+ 
+ the request payload 
+
+ {
+  "house_id": "house-001",
+  "session_id": "4396eba3-1aa9-4143-8d05-8e34d680121e"
+ }
+
+
+
+4.GET method for Layout - Used to get the layout image for a specific house
 
  excepted parameters on house_id and session_id.
 
@@ -238,7 +292,7 @@ Display room details based on user selection.
   "rooms_image": "/images/layout.jpg"
 }
 
-4. GET method for Rooms 
+5. GET method for Rooms 
 
  excepted parameters on house_id and session_id and roomName.
 
@@ -309,7 +363,7 @@ Display room details based on user selection.
 }
 
 
-  5. POST /select-room -  Update Room Preferences
+  6. POST /select-room -  Update Room Preferences
 
      Expected Parameters: session_id, house_id , selected_rooms 
 
