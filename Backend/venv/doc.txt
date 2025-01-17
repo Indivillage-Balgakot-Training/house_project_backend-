@@ -2,7 +2,9 @@
 
 Title: Home Buying Platform
 
-Description: A  web application for users to browse the house . The platform allows users to search for houses, view property, to look into the rooms and available colours of the room. The project leverages Next.js for the frontend and Flask for the backend, creating a seamless user experience and a powerful backend infrastructure. MongoDB is used as database to store the data.
+Description: A  web application for users to browse the house . The platform allows users to search for houses, view property,
+          to look into the rooms and available colours of the room. The project leverages Next.js for the frontend and Flask for the backend, 
+           creating a seamless user experience and a powerful backend infrastructure. MongoDB is used as database to store the data.
 
 Technologies Used:
 Frontend: Next.js, Tailwind CSS
@@ -442,6 +444,42 @@ Display room details based on user selection.
 
 }
 
+7.GET/ /user-selection : This is used to fetch the data whenever the page is refreshed.
+  
+ Expected Parameters: house_id , session_id 
+
+ Purpose:
+ -> This endpoint retrieves the user's room selections and preferences for a specific house. 
+ -> It returns the selected rooms and any dynamic preferences set by the user for the given house and session.
+ 
+ Response:
+
+ Response Body :
+
+
+{
+  "house_id": "house-001",
+  "session_id": "9d522138-5604-4686-b87e-d51f62a2f63e",
+  "cabinet_colors": "#ff33",
+  "selected_rooms": [
+    "Kitchen"
+  ],
+  "wall_colors": "#ccd4"
+}
+ 
+
+If house_id and session_id is missing the error message displayed below 
+Response Body:
+  {
+  "error": "Missing house_id or session_id"
+}
+
+ If the user doesnot have any previous selections this is message displayed below 
+{
+  "error": "No previous selection found for this house and user"
+}
+              
+If there are any  new or modified  selection the database updates. 
 
               
      
