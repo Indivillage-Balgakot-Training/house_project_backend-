@@ -1,3 +1,52 @@
+1. Project Overview
+
+Title: Home Buying Platform
+
+Description: A  web application for users to browse the house . The platform allows users to search for houses, view property, to look into the rooms and available colours of the room. The project leverages Next.js for the frontend and Flask for the backend, creating a seamless user experience and a powerful backend infrastructure. MongoDB is used as database to store the data.
+
+Technologies Used:
+Frontend: Next.js, Tailwind CSS
+Backend: Flask
+Database: MongoDB
+
+Installation Instructions:
+Clone the repository
+Set up the Backend (Flask):Install dependencies,Configure MongoDB (set up environment variables for MongoDB URI)
+Start the Flask server
+
+Set up the Frontend (Next.js):
+Install dependencies
+Start the development server
+
+Set up MongoDB:Configure the MongoDB connection URI in the backend settings.
+
+
+Frontend (Next.js):
+Gallery Page: Displays available houses.
+Layout Page: It displays the the layout of houses with hoverable rooms.
+Rooms Page: It displays the room specification and allow user to make selections.
+
+
+Backend(Flask)
+All the API's are mounted to fetch the data from MonogDB and Pass whenever the request are made.
+
+
+Architecture and Design: 
+Frontend: Next.js application (pages, components, and API routes)
+
+Backend: Flask REST API with endpoints to handle user selection, house and layout data, and room data and features.
+Database: MongoDB stores user selection data, house data.
+
+Diagram
+
+[Frontend - Next.js]  <---> [Backend - Flask] <---> [Database - MongoDB]
+
+
+6. API Documentation
+
+
+
+
 MongoDB Structure 
 Totally 2 Collection
 1. house collection 
