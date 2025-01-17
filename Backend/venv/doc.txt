@@ -1,4 +1,4 @@
-1. Project Overview
+-----Project Overview-----
 
 Title: Home Buying Platform
 
@@ -22,16 +22,13 @@ Start the development server
 
 Set up MongoDB:Configure the MongoDB connection URI in the backend settings.
 
-
 Frontend (Next.js):
 Gallery Page: Displays available houses.
 Layout Page: It displays the the layout of houses with hoverable rooms.
 Rooms Page: It displays the room specification and allow user to make selections.
 
-
 Backend(Flask)
 All the API's are mounted to fetch the data from MonogDB and Pass whenever the request are made.
-
 
 Architecture and Design: 
 Frontend: Next.js application (pages, components, and API routes)
@@ -39,17 +36,46 @@ Frontend: Next.js application (pages, components, and API routes)
 Backend: Flask REST API with endpoints to handle user selection, house and layout data, and room data and features.
 Database: MongoDB stores user selection data, house data.
 
-Diagram
+-----Diagram-----
 
 [Frontend - Next.js]  <---> [Backend - Flask] <---> [Database - MongoDB]
 
-MongoDB Structure 
+
+     user interface
+     frontend website
+           |  
+           | view gallery
+           |
+           v                 API request                                            
+    gallery page             --------->               backend                        -------->        Database (mangodb )
+    - mutiple houses        <----------              -It will handle request         <--------           -stores data 
+        shown                 display                -fetch details                   POST              -fetch data 
+                             house in gallery 
+user clicks |
+on house    |
+            |
+            v                  API request
+    Layout Page displays      ------------>            backend                -------->           Database (mangodb )
+    & clickable room areas    <--------------          -handle request        <--------           -fetch  layout data 
+                               shows layout            - fetch layout data       POST             
+                                 image 
+user clicks |
+on rooms    |
+            |                     
+            v                  API request         
+    Room details &             --------->            backend             -------->        Database (mangodb )
+    Information                <----------        -handle request        <--------         -fetch  room  data 
+                               updates room       - fetch room  data      POST              & returns data 
+                                  details 
+
+
+-----MongoDB Structure----- 
 Totally 2 Collection
 1. house collection 
 2. UserSelection
 
 
-2. Documentation And Review
+-----Documentation And Review-----
 
   
 1. House Collection - use to store all and not available houses
@@ -107,9 +133,6 @@ Totally 2 Collection
                     "image": <string> #path of an image to display the img when the respective color is clicked "/images/kitchenCabinet1.jpg" (an image showing the kitchen cabinets in this color)
 
                     }
-
-             
-
             }
 
      },
@@ -147,7 +170,7 @@ Totally 2 Collection
 
     }
 
-3. list of the API in simple documentation and how API interacts 
+-----list of the API in simple documentation and how API interacts along with purposes-----
 
 1. GET method for houses 
 
@@ -163,7 +186,13 @@ Totally 2 Collection
 
   The received json format data is displayed in user interface.
 
-   excepted output (Response)
+  Purpose:
+  Shows a list of available houses with their images, names, and descriptions.
+  Allows users to select a house by clicking on its image.
+  Prevents other users from selecting a house that is already locked by someone else.
+  After selecting a house, users are redirected to a detailed page for further interaction.
+
+   excepted output (Response):
         [
               {
       "house_id": <string> #used as unique identifier for each house. 
@@ -174,9 +203,7 @@ Totally 2 Collection
 ...
 ]
  
-
- 2. 
-   POST /select-house - 
+2. POST method for house - 
   
    Expected Parameters: session_id , house_id
    
@@ -195,12 +222,12 @@ Totally 2 Collection
     ->Locked at # Its displayed the date and time of that house locked.
     
 
-     Expected Output (Payload): 
+    Expected Output (Payload): 
      
       {house_id: "house-001"}
        house_id: "house-001"
 
-       Response:
+    Response:
        {
   "house_id": "house-001",
   "message": "House selected successfully",
@@ -291,7 +318,7 @@ Allow users to select and navigate between different rooms within the house.
 Display room details based on user selection.
 
 
- Response
+Response:
  {
   "rooms": [
     {
@@ -357,7 +384,7 @@ Display room details based on user selection.
   RoomPage allows users to view and customize a specific room within a house. The user can select different color options for categories 
   in the room, means wall color, wardrobe color etc, and these preferences are sent to backend.
 
-  Response
+  Response:
   {
   "images": [
     {
@@ -407,8 +434,7 @@ Display room details based on user selection.
   "room_name": "Living Room"
 }
 
-
-  6. POST /select-room -  Update Room Preferences
+6. POST /select-room -  Update Room Preferences
 
      Expected Parameters: session_id, house_id , selected_rooms 
 
@@ -428,7 +454,7 @@ Display room details based on user selection.
     -> Room Selection and Preferences Update: The backend receives the house_id, session_id, selected_rooms, and preferences.
     -> Database Update: The selected_rooms and preferences are stored in the database using the provided session_id and house_id.
     
-     Expected Output (Payload): 
+    Expected Output (Payload): 
 
     {house_id: "house-001", session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c",…}
     house_id: "house-001"
