@@ -141,7 +141,7 @@ Totally 2 Collection
 
      "locked": <boolean> null # to check the status of a house ,
 
-      "locked_at" : <boolean> 
+      "locked_at" : <Datetime> 
      }
 
 
@@ -203,7 +203,7 @@ Totally 2 Collection
 ...
 ]
  
-2. POST method for house - 
+2. GET method for house - 
   
    Expected Parameters: session_id , house_id
    
@@ -214,7 +214,7 @@ Totally 2 Collection
   Sending Request:
   The frontend then makes a POST request to the backend with the selected house's house_id.
              const response = await fetch('http://127.0.0.1:5000/select-house') 
- - This sends a POST request to the backend with @app.route('/select-house', methods=['POST']) the selected house ID and the session ID.
+ - This sends a GET request to the backend with @app.route('/select-house', methods=['GET']) the selected house ID and the session ID.
 
   When the backend receives the request with the house ID, it performs the following: 
     ->Session Id  # It is used to keep the track of the user.
@@ -222,20 +222,14 @@ Totally 2 Collection
     ->Locked at # Its displayed the date and time of that house locked.
     
 
-    Expected Output (Payload): 
-     
-      {house_id: "house-001"}
-       house_id: "house-001"
 
     Response:
        {
-  "house_id": "house-001",
-  "message": "House selected successfully",
-  "session_id": "4396eba3-1aa9-4143-8d05-8e34d680121e"
+     status: ok
 }
 
 
-3. The @app.route('/exit', methods=['POST']) method is a POST endpoint designed to unlock any houses that were previously 
+3. The @app.route('/exit', methods=['GET']) method is a POST endpoint designed to unlock any houses that were previously 
    locked by a user and clear the user's session
    
    Expected Parameters: session_id , house_id
@@ -244,7 +238,7 @@ Totally 2 Collection
    and end their session.
    
    Sending the Request:
-   The frontend sends a POST request to the backend at the /exit endpoint. The request includes 
+   The frontend sends a GET request to the backend at the /exit endpoint. The request includes 
    the house_id and the session_id.
    
    Data Extraction:
@@ -282,13 +276,6 @@ Totally 2 Collection
   "message": "House unlocked and session ended"
    }
  
- the request payload 
-
- {
-  "house_id": "house-001",
-  "session_id": "4396eba3-1aa9-4143-8d05-8e34d680121e"
- }
-
 
 
 4.GET method for Layout - Used to get the layout image for a specific house
@@ -470,42 +457,6 @@ Response:
 
 }
 
-7.GET/ /user-selection : This is used to fetch the data whenever the page is refreshed.
-  
- Expected Parameters: house_id , session_id 
-
- Purpose:
- -> This endpoint retrieves the user's room selections and preferences for a specific house. 
- -> It returns the selected rooms and any dynamic preferences set by the user for the given house and session.
- 
- Response:
-
- Response Body :
-
-
-{
-  "house_id": "house-001",
-  "session_id": "9d522138-5604-4686-b87e-d51f62a2f63e",
-  "cabinet_colors": "#ff33",
-  "selected_rooms": [
-    "Kitchen"
-  ],
-  "wall_colors": "#ccd4"
-}
- 
-
-If house_id and session_id is missing the error message displayed below 
-Response Body:
-  {
-  "error": "Missing house_id or session_id"
-}
-
- If the user doesnot have any previous selections this is message displayed below 
-{
-  "error": "No previous selection found for this house and user"
-}
-              
-If there are any  new or modified  selection the database updates. 
 
               
      
