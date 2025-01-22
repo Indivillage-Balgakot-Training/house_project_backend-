@@ -135,7 +135,8 @@ Totally 2 Collection
                     }
             }
 
-     },
+     }
+    },
 
      {
 
@@ -241,56 +242,10 @@ Totally 2 Collection
 }
 
 
-3. The @app.route('/exit', methods=['GET']) method is a POST endpoint designed to unlock any houses that were previously 
-   locked by a user and clear the user's session
-   
-   Expected Parameters: session_id , house_id
-
-   User Action: The user clicks an option or takes an action to exit the website, indicating that they want to unlock any houses they have locked 
-   and end their session.
-   
-   Sending the Request:
-   The frontend sends a GET request to the backend at the /exit endpoint. The request includes 
-   the house_id and the session_id.
-   
-   Data Extraction:
-   The backend extracts the house_id and session_id from the request body using data = request.get_json(). 
-   This allows the server to know which session the user is associated with.
-   
-   Validation:
-   If either house_id or session_id is missing from the request body, 
-   the backend returns a 400 Bad Request error with a message indicating that both parameters are required.
-
-   the below is error message 
-   {
-  "error": "House ID and Session ID are required"
-   }
-  
-  Unlocking Houses:
-   The backend performs a query to find all houses in the database that are currently locked by the session_id.
-   The locked field in the database is used to check which houses are locked by the user.
-   the query related to this would look like below
-   locked_houses = mongo.db.houses.find({"locked": session_id})
-
-   For each house found in the query, the backend updates the house in the database to remove the lock. 
-   This is done by setting the locked field to None and clearing the locked_at field (removes the timestamp of when the house was locked).
-   
-   Clearing the Session:
-   After unlocking the houses, the backend clears the session using session.clear(). 
-   This effectively logs the user out by removing all session-related data.
-
-   Once the houses are unlocked and the session is cleared, the backend responds with a success message: 
-   "House unlocked and session ended" and a 200 OK status code. This indicates that the process was completed successfully.
 
 
-   the response would look like something below
-   {
-  "message": "House unlocked and session ended"
-   }
- 
 
-
-4.GET method for Layout - Used to get the layout image for a specific house
+3.GET method for Layout - Used to get the layout image for a specific house
 
  excepted parameters on house_id and session_id.
 
@@ -363,7 +318,7 @@ Response:
   "rooms_image": "/images/layout.jpg"
 }
 
-5. GET method for Rooms 
+4. GET method for Rooms 
 
  excepted parameters on house_id and session_id and roomName.
 
@@ -433,7 +388,7 @@ Response:
   "room_name": "Living Room"
 }
 
-6. POST /select-room -  Update Room Preferences
+5. POST /select-room -  Update Room Preferences
 
      Expected Parameters: session_id, house_id , selected_rooms 
 
@@ -457,8 +412,8 @@ Response:
 
     {house_id: "house-001", session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c",…}
     house_id: "house-001"
-    preferences: {cabinet_colors: "/images/kitchenCabinet2.jpg"}
-    cabinet_colors: "/images/kitchenCabinet2.jpg"
+    preferences: {cabinet_colors: "#ef90d0"}
+    cabinet_colors: "ef90d0"
       selected_rooms: ["Kitchen"]: 
        0 :"Kitchen"
     session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c"
