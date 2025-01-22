@@ -146,29 +146,41 @@ Totally 2 Collection
 
 
 2. User selection- This is store all the data entered by a user 
-     {
-      #user selection
-
-      "house_id": <string> house-001; #used as unique identifier for each house. This is used to store the selected house in the database.  
-
-      "session_id":<srting> session-001; #used as unique identifier for each session. This is used to store the selected session_id in the database.
-
-      "selected_rooms":<string> "Bedroom"; #the selected room in the layout to store in the database.
-
-      "basin_colors":<string> "blue"; #the selected color for the basin to store in the database.
-
-      "cabinet_colors":<string>  "red"; #the selected color for the cabinet to store in the database.
-
-      "wall_colors":<string> "green"; #the selected color for the wall to store in the database.
-
-      "ceiling_colors":<string> "yellow"; #the selected color for the ceiling to store in the database.
-
-      "wardrobe_colors":<string> "purple"; #the selected color for the wardrobe to store in the database.
-
-      
-     } 
-
-    }
+    {
+  "user_selection": {
+    "house_id": "house-001",  # The unique identifier for the selected house.
+    "session_id": "session-001",  # The unique session ID to track the user's interaction.
+    "selected_rooms": [
+      {
+        "room_name": "Bedroom",  # The name of the room being selected.
+        "selected_items": [
+          {
+            "key": "wall_colors",  # The unique identifier for the wall color category.
+            "selected_color": "#00FF00",  # The selected color for the walls (Green in this case).
+            "selected_image": "/images/greenWall.jpg"  # Path to an image showing the green wall color.
+          },
+          {
+            "key": "cabinet_colors",  # The unique identifier for the cabinet color category.
+            "selected_color": "#D2B48C",  # The selected color for the cabinet (Tan in this case).
+            "selected_image": "/images/kitchenCabinet1.jpg"  # Path to an image of the selected cabinet color.
+          },
+          {
+            "key": "ceiling_colors",  # The unique identifier for the ceiling color category.
+            "selected_color": "#FFFF00",  # The selected color for the ceiling (Yellow in this case).
+            "selected_image": "/images/yellowCeiling.jpg"  # Path to an image showing the yellow ceiling color.
+          },
+          {
+            "key": "wardrobe_colors",  # The unique identifier for the wardrobe color category.
+            "selected_color": "#800080",  # The selected color for the wardrobe (Purple in this case).
+            "selected_image": "/images/wardrobePurple.jpg"  # Path to an image of the selected wardrobe color.
+          }
+        ]
+      }
+    ],
+    "locked": false,  # A boolean indicating if the house (or this room) is locked or not.
+    "locked_at": null  # Timestamp when the room was locked (if applicable).
+  }
+}
 
 -----list of the API in simple documentation and how API interacts along with purposes-----
 
