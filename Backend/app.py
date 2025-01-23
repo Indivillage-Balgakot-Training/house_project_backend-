@@ -76,5 +76,60 @@ def select_house():
         "locked_at": locked_at.strftime('%Y-%m-%d %H:%M:%S'),
     })
 
+
+@app.route('/rooms/<house_id>', methods=['GET'])
+def get_layout(house_id):
+    try:
+        # Fetch the house layout from MongoDB using house_id
+        house_layout = mongo.db.houses.find_one({"house_id": house_id})
+
+        if not house_layout:
+            return jsonify({"error": "House layout not found"}), 404
+
+        # Generate a session ID
+        session_id = str(uuid.uuid4())
+
+        # Prepare the response data (including rooms, areas, and images)
+        rooms_data = house_layout.get('rooms', {})
+        rooms_image = house_layout.get('rooms_image', '')
+
+        # Format the layout response with rooms and their areas
+        layout_response = {
+            "session_id": session_id,
+            "house_id": house_id,
+            "rooms_image": rooms_image,
+            "rooms": []
+        }
+
+        for room_name, room in rooms_data.items():
+            room_data = {
+                "name": room_name,
+                "areas": []
+            }
+
+            # Extract layout page details (assuming this is equivalent to areas)
+            layout_page_details = room.get('layout_page_details', {})
+            if layout_page_details:
+                area_data = {
+                    "name": room_name,  # Use room name as area name
+                    "left": layout_page_details.get('left', 0),
+                    "top": layout_page_details.get('top', 0),
+                    "width": layout_page_details.get('width', 0),
+                    "height": layout_page_details.get('height', 0),
+                    "color": layout_page_details.get('color', '')  # Send color if present
+                }
+                room_data["areas"].append(area_data)
+            
+            # If there are images related to the room, include them as well
+            if room.get('image_path'):
+                room_data["image_path"] = room.get('image_path')
+
+            layout_response["rooms"].append(room_data)
+
+        return jsonify(layout_response)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
