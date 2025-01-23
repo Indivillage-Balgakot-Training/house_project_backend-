@@ -274,48 +274,45 @@ Display room details based on user selection.
 
 Response:
  {
+  "rooms_image": "/images/layout.jpg",
   "rooms": [
     {
-      "areas": [
-        {
+      "name": "Bedroom",
+      "areas": {
+        "bedroom": {
           "color": "blue",
           "height": 120,
           "left": 215,
-          "name": "bedroom",
           "top": 100,
           "width": 198
         }
-      ],
-      "name": "Bedroom"
+      }
     },
     {
-      "areas": [
-        {
+      "name": "Kitchen",
+      "areas": {
+        "kitchen": {
           "color": "green",
           "height": 197,
           "left": 218,
-          "name": "kitchen",
           "top": 220,
           "width": 195
         }
-      ],
-      "name": "Kitchen"
+      }
     },
     {
-      "areas": [
-        {
+      "name": "Living Room",
+      "areas": {
+        "livingroom": {
           "color": "red",
           "height": 315,
           "left": 413,
-          "name": "livingroom",
           "top": 100,
           "width": 200
         }
-      ],
-      "name": "Living Room"
+      }
     }
-  ],
-  "rooms_image": "/images/layout.jpg"
+  ]
 }
 
 4. GET method for Rooms 
