@@ -12,7 +12,7 @@ mongo = PyMongo(app)
 # Enable CORS for specific origin (your frontend URL)
 CORS(app, supports_credentials=True, )
 
-app.secret_key = 'your_secret_key_here'  # Change to a strong secret key
+app.secret_key = 'Indivillage@bgk'  # Change to a strong secret key
 
 def get_session_id():
     """Generate or retrieve the session ID."""
@@ -25,7 +25,7 @@ def get_session_id():
 def get_houses():
     # Fetch available houses (not locked)
     houses_collection = mongo.db.houses  # Reference to the houses collection
-    available_houses = houses_collection.find({"locked_by": None})  # Filter houses where locked_by is None
+    available_houses = houses_collection.find({"locked_by": None})  # Only fetch houses that are not locked
     
     # Convert the Mongo cursor to a list of dictionaries
     house_list = [
@@ -43,6 +43,7 @@ def get_houses():
         return jsonify({"status": "error", "message": "No available houses"}), 404
     
     return jsonify(house_list)
+
 
 @app.route('/select-house', methods=['GET'])
 def select_house():
@@ -130,6 +131,62 @@ def get_layout(house_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    
+@app.route('/room-data_dev', methods=['GET'])
+def get_room_data():
+    try:
+        # Get the query parameters from the request
+        house_id = request.args.get('house_id')
+        session_id = request.args.get('session_id')
+        room_name = request.args.get('room_name')
+
+        # Validate input
+        if not house_id or not session_id or not room_name:
+            return jsonify({"status": "error", "message": "Missing house_id, session_id, or room_name"}), 400
+
+        # Fetch the house data from the database based on house_id
+        houses_collection = mongo.db.houses  # Reference to the houses collection
+        house = houses_collection.find_one({"house_id": house_id})
+
+        if not house:
+            return jsonify({"status": "error", "message": "House not found"}), 404
+
+        # Check if the house is locked by the current session_id
+        if house.get("locked_by") != session_id:
+            return jsonify({"status": "error", "message": "House is not locked by your session"}), 400
+
+        # Fetch the specific room data from the house based on room_name
+        rooms = house.get('rooms', {})
+        room_data = rooms.get(room_name)
+
+        if not room_data:
+            return jsonify({"status": "error", "message": "Room not found"}), 404
+
+        # Prepare the response data (colors and images for wall, ceiling, etc.)
+        images = []
+        for category, color_data in room_data.get('color_categories', {}).items():
+            color_category = {
+                "key": category,
+                "label": color_data['label'],
+                "colors": [
+                    {"color": color['color'], "image": color['image']} for color in color_data['colors']
+                ],
+                "selected_color": color_data.get('selected_color', None)
+            }
+            images.append(color_category)
+
+        # Construct the response with images and room data
+        response_data = {
+            "images": images,
+            "image_path": room_data.get('image_path', ''),  # Image for the room (like a thumbnail)
+            "room_name": room_name
+        }
+
+        return jsonify(response_data)
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
