@@ -23,26 +23,37 @@ def get_session_id():
 
 @app.route('/houses', methods=['GET'])
 def get_houses():
-    # Fetch available houses (not locked)
-    houses_collection = mongo.db.houses  # Reference to the houses collection
-    available_houses = houses_collection.find({"locked_by": None})  # Only fetch houses that are not locked
-    
-    # Convert the Mongo cursor to a list of dictionaries
-    house_list = [
-        {
-            "house_id": house["house_id"],
-            "house_name": house["house_name"],
-            "house_image": house["house_image"],
-            "description": house["description"],
-        }
-        for house in available_houses
-    ]
-    
-    # If no houses are available, return an error message
-    if not house_list:
-        return jsonify({"status": "error", "message": "No available houses"}), 404
-    
-    return jsonify(house_list)
+    try:
+        # Reference to the houses collection
+        houses_collection = mongo.db.houses
+
+        # Fetch all houses (no filtering by locked status in MongoDB)
+        all_houses = houses_collection.find()
+
+        # Initialize an empty list to hold the available houses
+        house_list = []
+
+        for house in all_houses:
+            # Check if the house is not locked (locked is None)
+            if house.get("locked") is None:
+                # If it's not locked, add it to the list with necessary fields
+                house_data = {
+                    "house_id": house.get("house_id"),
+                    "house_name": house.get("house_name"),
+                    "house_image": house.get("house_image"),
+                    "description": house.get("description"),
+                }
+                house_list.append(house_data)
+
+        # If no houses are available, return an error message
+        if not house_list:
+            return jsonify({"status": "error", "message": "No available houses"}), 404
+
+        return jsonify(house_list), 200
+
+    except Exception as e:
+        # In case of any unexpected errors, return a 500 error
+        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
 
 @app.route('/select-house', methods=['GET'])
@@ -65,6 +76,8 @@ def select_house():
 
     # Lock the house for the current session
     locked_at = datetime.now()
+    print(house_id)
+    print(session_id)
     houses_collection.update_one(
         {"house_id": house_id},
         {"$set": {"locked_by": session_id, "locked_at": locked_at}}
@@ -76,7 +89,6 @@ def select_house():
         "house_id": house_id,
         "locked_at": locked_at.strftime('%Y-%m-%d %H:%M:%S'),
     })
-
 
 @app.route('/rooms/<house_id>', methods=['GET'])
 def get_layout(house_id):
@@ -96,7 +108,6 @@ def get_layout(house_id):
 
         # Format the layout response with rooms and their areas
         layout_response = {
-            "session_id": session_id,
             "house_id": house_id,
             "rooms_image": rooms_image,
             "rooms": []
@@ -108,19 +119,16 @@ def get_layout(house_id):
                 "areas": []
             }
 
-            # Extract layout page details (assuming this is equivalent to areas)
+            # Extract layout page details using dict.get()
             layout_page_details = room.get('layout_page_details', {})
-            if layout_page_details:
-                area_data = {
-                    "name": room_name,  # Use room name as area name
-                    "left": layout_page_details.get('left', 0),
-                    "top": layout_page_details.get('top', 0),
-                    "width": layout_page_details.get('width', 0),
-                    "height": layout_page_details.get('height', 0),
-                    "color": layout_page_details.get('color', '')  # Send color if present
-                }
-                room_data["areas"].append(area_data)
             
+            # Create area_data using dictionary unpacking and default values
+            if layout_page_details:
+                room_data["areas"].append({
+                    "name": room_name,
+                    **layout_page_details  # Directly unpack layout_page_details into the dictionary
+                })
+
             # If there are images related to the room, include them as well
             if room.get('image_path'):
                 room_data["image_path"] = room.get('image_path')
@@ -131,7 +139,7 @@ def get_layout(house_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
     
 @app.route('/room-data_dev', methods=['GET'])
 def get_room_data():
