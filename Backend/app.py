@@ -146,7 +146,6 @@ def get_layout(house_id):
         return jsonify({"error": str(e)}), 500  # Return error message if something goes wrong
 
 
-# Route to fetch specific room data for a given house and room
 @app.route('/room-data_dev', methods=['GET'])
 def get_room_data():
     try:
@@ -167,7 +166,17 @@ def get_room_data():
             return jsonify({"status": "error", "message": "House not found"}), 404
 
         # Check if the house is locked by the current session_id
-        if house.get("locked_by") != session_id:  # Ensure the house is locked by the current session
+        locked_by = house.get("locked_by")
+        if not locked_by:
+            # If the house is not locked by any session, we can lock it for the current session
+            houses_collection.update_one(
+                {"house_id": house_id},
+                {"$set": {"locked_by": session_id}}
+            )
+            locked_by = session_id  # Lock it for the current session
+
+        # Validate if the house is locked by the current session
+        if locked_by != session_id:
             return jsonify({"status": "error", "message": "House is not locked by your session"}), 400
 
         # Fetch the specific room data from the house based on room_name
@@ -179,6 +188,8 @@ def get_room_data():
 
         # Prepare the response data (colors and images for wall, ceiling, etc.)
         images = []
+        available_selections = []
+
         for category, color_data in room_data.get('color_categories', {}).items():
             color_category = {
                 "key": category,
@@ -190,17 +201,29 @@ def get_room_data():
             }
             images.append(color_category)  # Add color data to images list
 
-        # Construct the response with images and room data
+        # Include available selections in the response
+        if "available_selections" in room_data:
+            available_selections = room_data["available_selections"]
+
+        # Construct the response with images, available selections, and room data
         response_data = {
             "images": images,
             "image_path": room_data.get('image_path', ''),  # Image for the room (like a thumbnail)
-            "room_name": room_name
+            "room_name": room_name,
+            "available_selections": available_selections
         }
 
         return jsonify(response_data)  # Return the room data response
 
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500  # Handle unexpected errors
+        # Handle unexpected errors
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+    except Exception as e:
+        # Handle unexpected errors
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 # Run the Flask app
 if __name__ == '__main__':
