@@ -1,0 +1,4 @@
+1. Documnetation of Frontend Page.
+2. Documentation modification  of Backend Page.
+3. There are totally 2 GET methods and 1 POST methods. All the API should be Implemented .
+4.All those  GET API should be Implemented in frontend.

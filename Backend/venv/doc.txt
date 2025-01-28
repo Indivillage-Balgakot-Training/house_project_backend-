@@ -23,6 +23,7 @@ Start the development server
 Set up MongoDB:Configure the MongoDB connection URI in the backend settings.
 
 Frontend (Next.js):
+Home Page : Reference for site
 Gallery Page: Displays available houses.
 Layout Page: It displays the the layout of houses with hoverable rooms.
 Rooms Page: It displays the room specification and allow user to make selections.
@@ -46,27 +47,27 @@ Database: MongoDB stores user selection data, house data.
            |  
            | view gallery
            |
-           v                 API request                                            
+           v                 API request                                            GET
     gallery page             --------->               backend                        -------->        Database (mangodb )
-    - mutiple houses        <----------              -It will handle request         <--------           -stores data 
-        shown                 display                -fetch details                   POST              -fetch data 
-                             house in gallery 
+    - mutiple houses        <----------              -It will handle request         <--------           -fetch data of houses 
+        shown                 display                -fetch details                    -------->           to lock houses
+                             house in gallery                                            GET
 user clicks |
 on house    |
             |
             v                  API request
-    Layout Page displays      ------------>            backend                -------->           Database (mangodb )
+    Layout Page displays      ------------>            backend                ----GET---->           Database (mangodb )
     & clickable room areas    <--------------          -handle request        <--------           -fetch  layout data 
-                               shows layout            - fetch layout data       POST             
+                               shows layout            - fetch layout data                  
                                  image 
 user clicks |
 on rooms    |
             |                     
             v                  API request         
-    Room details &             --------->            backend             -------->        Database (mangodb )
+    Room details &             --------->            backend             ----GET---->        Database (mangodb )
     Information                <----------        -handle request        <--------         -fetch  room  data 
-                               updates room       - fetch room  data      POST              & returns data 
-                                  details 
+                               updates room       - fetch room  data       ------>             & returns data 
+                                  details                                   POST
 
 
 -----MongoDB Structure----- 
