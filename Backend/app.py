@@ -13,19 +13,14 @@ mongo = PyMongo(app)  # Set up the PyMongo instance to interact with MongoDB
 CORS(app, supports_credentials=True)
 
 app.secret_key = 'Indivillage@bgk'  # Set a strong secret key for Flask's session management
-
-# Function to generate or retrieve a session ID
-def get_session_id():
-    """Generate or retrieve the session ID."""
-    if 'session_id' not in session:  # If no session ID exists in the session data
-        session.permanent = True  # Keep the session active even after the browser is closed
-        session['session_id'] = str(uuid.uuid4())  # Generate a new unique session ID (UUID)
-    return session['session_id']  # Return the session ID
-
-# Route to fetch all houses that are not locked
 @app.route('/houses', methods=['GET'])
 def get_houses():
     try:
+        # Get the session ID from the query parameter (e.g., /houses?session_id=xyz)
+        session_id = request.args.get('session_id')
+        if not session_id:
+            return jsonify({"status": "error", "message": "Session ID is missing"}), 400
+        
         # Reference to the houses collection in MongoDB
         houses_collection = mongo.db.houses
 
