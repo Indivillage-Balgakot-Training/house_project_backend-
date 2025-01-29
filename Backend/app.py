@@ -10,7 +10,7 @@ app.config["MONGO_URI"] = "mongodb+srv://Balgakot_app_training:SBhQqTzY7Go7sEXJ@
 mongo = PyMongo(app)  # Set up the PyMongo instance to interact with MongoDB
 
 # Enable CORS for specific origins (your frontend URL) to allow cross-origin requests
-CORS(app, supports_credentials=True, )
+CORS(app, supports_credentials=True)
 
 app.secret_key = 'Indivillage@bgk'  # Set a strong secret key for Flask's session management
 
@@ -93,6 +93,7 @@ def select_house():
         "house_id": house_id,
         "locked_at": locked_at.strftime('%Y-%m-%d %H:%M:%S'),  # Return the formatted locked timestamp
     })
+
 
 # Route to fetch room layout details for a given house
 @app.route('/rooms/<house_id>', methods=['GET'])
@@ -220,9 +221,65 @@ def get_room_data():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+# Route to handle room selection
+@app.route('/select-room', methods=['POST'])
+def select_room():
+    try:
+        # Get data from the POST request
+        data = request.get_json()  # Parse the incoming JSON data
+        house_id = data.get('house_id')  # Extract house_id from the JSON data
+        session_id = data.get('session_id')  # Extract session_id from the JSON data
+        selected_rooms = data.get('selected_rooms')  # Extract the list of selected rooms
+        preferences = data.get('preferences')  # Extract the user's preferences (e.g., colors)
+
+        # Validate the input data
+        if not house_id or not session_id or not selected_rooms:
+            return jsonify({"status": "error", "message": "Missing house_id, session_id, or selected_rooms"}), 400
+
+        # Fetch the house from the database using house_id
+        houses_collection = mongo.db.houses
+        house = houses_collection.find_one({"house_id": house_id})
+
+        if not house:
+            return jsonify({"status": "error", "message": "House not found"}), 404
+
+        # Lock the house for the session if not already locked
+        locked_by = house.get("locked_by")
+        if not locked_by:
+            houses_collection.update_one(
+                {"house_id": house_id},
+                {"$set": {"locked_by": session_id}}
+            )
+            locked_by = session_id  # Lock it for the current session
+
+        if locked_by != session_id:
+            return jsonify({"status": "error", "message": "House is not locked by your session"}), 400
+
+        # Update the selected rooms and preferences in the house data
+        # You can store the selected_rooms and preferences in a new field or a specific document
+        house_preferences = {
+            "selected_rooms": selected_rooms,
+            "preferences": preferences
+        }
+
+        # Assuming there's a 'room_preferences' collection or updating directly in the house document
+        mongo.db.room_preferences.update_one(
+            {"house_id": house_id, "session_id": session_id},
+            {"$set": house_preferences},
+            upsert=True  # Create a new document if none exists for this session and house
+        )
+
+        # Return a success message
+        return jsonify({
+            "message": "Room selection updated successfully",
+            "house_id": house_id,
+            "session_id": session_id,
+            "selected_rooms": selected_rooms,
+            "preferences": preferences
+        }), 200
+
     except Exception as e:
-        # Handle unexpected errors
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
 
 # Run the Flask app
