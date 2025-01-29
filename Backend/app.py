@@ -94,14 +94,15 @@ def select_house():
 @app.route('/rooms/<house_id>', methods=['GET'])
 def get_layout(house_id):
     try:
+
+        session_id = request.args.get('session_id')
+        if not session_id:
+            return jsonify({"status": "error", "message": "Session ID is missing"}), 400
         # Fetch the house layout from MongoDB using house_id
         house_layout = mongo.db.houses.find_one({"house_id": house_id})
 
         if not house_layout:  # If the house layout is not found
             return jsonify({"error": "House layout not found"}), 404
-
-        # Generate a session ID (for layout access)
-        session_id = str(uuid.uuid4())
 
         # Prepare the response data (including rooms, areas, and images)
         rooms_data = house_layout.get('rooms', {})  # Get the rooms data from the house
