@@ -276,6 +276,8 @@ def select_room():
 
     except Exception as e:
         return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
+    
+#CODE COMPLETED
 
 
 # Run the Flask app
