@@ -2,3 +2,12 @@
 2. Documentation modification  of Backend Page.
 3. There are totally 4 GET methods and 1 POST methods. All the API should be Implemented .
 4.All those  GET API should be Implemented in frontend.
+
+
+
+1.API should be moved to layout update documentation and implementation changes
+2.POST method at backend
+
+1.session_id in cookies
+2.POST method implementated correctly.
+3.every page is loaded or interacted with API sends according to the documentation.
