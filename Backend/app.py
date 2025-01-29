@@ -263,7 +263,7 @@ def select_room():
         }
 
         # Assuming there's a 'room_preferences' collection or updating directly in the house document
-        mongo.db.room_preferences.update_one(
+        mongo.db.user_selection.update_one(
             {"house_id": house_id, "session_id": session_id},
             {"$set": house_preferences},
             upsert=True  # Create a new document if none exists for this session and house
