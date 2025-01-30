@@ -408,18 +408,16 @@ Response:
     
     Expected Output (Payload): 
 
-    {house_id: "house-001", session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c",…}
-    house_id: "house-001"
-    preferences: {cabinet_colors: "#ef90d0"}
-    cabinet_colors: "ef90d0"
-      selected_rooms: ["Kitchen"]: 
-       0 :"Kitchen"
-    session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c"
-
-    response:
-    {
-  "message": "Room selection updated successfully"
-
+   {
+      "house_id": "house-002",
+      "session_id": "sfafgagfafasffsa",
+      "preferences": {
+      "wall_colors": "#ffaf5d",
+      "ceiling_colors": "#eed725"
+  },
+     "selected_rooms": [
+     "Living Room"
+  ]
 }
 
 
