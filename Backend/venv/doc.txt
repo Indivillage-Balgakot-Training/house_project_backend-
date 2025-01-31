@@ -181,6 +181,7 @@ Totally 2 Collection
     ],
     "locked": false,  # A boolean indicating if the house (or this room) is locked or not.
     "locked_at": null  # Timestamp when the room was locked (if applicable).
+    "locked_by": "gffgfhjhghggkhg" 
   }
 }
 
@@ -211,6 +212,20 @@ Response:
   },
   ...
 ]
+
+when the house is locked 
+
+Response:
+[
+{
+  "house_id": "house-001",
+  "locked_at": "2025-01-31 16:05:45",
+  "session_id": "fc51077f-b79a-45e5-8299-00a0cb3e2f6e",
+  "status": "ok"
+}
+]
+
+
 
 2.GET /rooms/<house_id>
 Fetches the layout of rooms for a specific house.
