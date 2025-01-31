@@ -197,9 +197,7 @@ def get_room_data():
             )
             locked_by = session_id  # Lock it for the current session
 
-        # Validate if the house is locked by the current session
-        if locked_by != session_id:
-            return jsonify({"status": "error", "message": "House is not locked by your session"}), 400
+
 
         # Fetch the specific room data from the house based on room_name
         rooms = house.get('rooms', {})
