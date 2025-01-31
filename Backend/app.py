@@ -207,7 +207,7 @@ def get_room_data():
                 "key": category,
                 "label": color_data['label'],
                 "colors": [
-                    {"color": color['color'], "image": color['image']} for color in color_data['colors']
+                  {"color": color['color']} for color in color_data['colors']  # Removed the 'image' field
                 ],
                 "selected_color": color_data.get('selected_color', None)
             }
