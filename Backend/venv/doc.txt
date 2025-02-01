@@ -187,150 +187,224 @@ Totally 2 Collection
 
 -----list of the API in simple documentation and how API interacts along with purposes-----
 
-1.GET /houses
-Fetches a list of all available houses (unlocked).
+1. GET method for houses
 
-Expected Parameters:
+Expected Parameters: session_id
 
-session_id
+User Interaction: When the GalleryPage component is loaded, it will make a GET request to the backend using this HTTP link(http://127.0.0.1:5000/houses).
+const response = await fetch('http://127.0.0.1:5000/houses'); #This sends an HTTP GET request to the backend, asking for the house data.
+when the frontend makes request it fetches the houses from the database using API @app.route('/houses', methods=['GET']) and
+if house is locked it does not fetch the house and sends the data in json format to the frontend.
+Fetching Data: Inside the useEffect hook, the code calls the JSON format to fetch Houses from the backend.
 
-User Interaction:
-When the frontend is loaded, a request is made to fetch a list of houses. If the house is locked, it is not included in the list.
+The received json format data is displayed in user interface.
 
 Purpose:
+Shows a list of available houses with their images, names, and descriptions.
+Allows users to select a house by clicking on its image.
+Prevents other users from selecting a house that is already locked by someone else.
+After selecting a house, users are redirected to a detailed page for further interaction.
 
-Fetch available houses that are not locked.
-Prevent users from interacting with locked houses.
-
-Response:
-[
-  {
-    "house_id": "<string>",  // Unique identifier for the house
-    "house_name": "<string>",  // House name
-    "house_image": "/house1.jpg",  // Image path
-    "description": "A beautiful two-story house located in the heart of the city."
-  },
-  ...
-]
-
-when the house is locked 
-
-Response:
+excepted output (Response):
 [
 {
-  "house_id": "house-001",
-  "locked_at": "2025-01-31 16:05:45",
-  "session_id": "fc51077f-b79a-45e5-8299-00a0cb3e2f6e",
-  "status": "ok"
+"house_id": <string> #used as unique identifier for each house.
+"house_name": <string> # human readble,
+"house_image": "/house1.jpg",
+"description": "A beautiful two-story house located in the heart of the city. Features modern amenities and spacious interiors.",
 }
+...
 ]
 
 
+2.GET method for Layout - Used to get the layout image for a specific house
 
-2.GET /rooms/<house_id>
-Fetches the layout of rooms for a specific house.
+excepted parameters on house_id and session_id.
 
-Expected Parameters:house_id,session_id
-
-User Interaction:
-When a user selects a house, the layout of rooms is fetched using the house's ID. This allows the user to navigate between different rooms.
+User Interaction: When the LayoutPage component is loaded, it will make a GET request to the backend (`http://localhost:5000/rooms/${houseId}`).
+const layoutResponse = await fetch(`http://localhost:5000/rooms/${houseId}`); #This sends an HTTP GET request to the backend, asking for the layout
+information for the house.
+when the frontend makes request it fetches the layouts of a specific houses from the API @app.route('/rooms/<house_id>', methods=['GET']) database.
+Fetching Data: Inside the useEffect hook, the code calls the fetchlayout function to fetch the layout data from the backend.
+The request is successful, it saves the layout data and the list of rooms into the state.
+LayoutPage allows users to view the layout of rooms in a house. It displays an image showing the house's layout, and also they are clickable areas
+having different rooms. Users can hover over these areas to highlight them and click to select a room. When a room is selected, the user goes to
+a new page.
+it does not have POST method because it will not send any information to the backend. it uses for navigation of page.
 
 Purpose:
-Display the layout of rooms for a specific house.
-Allow users to navigate through rooms.
+To show how house layout looks.
+Allow users to select and navigate between different rooms within the house.
+Display room details based on user selection.
 
 Response:
 {
-  "house_id": "<house_id>",
-  "rooms_image": "/images/layout.jpg",  // Path to the house's layout image
-  "rooms": [
-    {
-      "name": "Bedroom",
-      "areas": {
-        "bedroom": {
-          "color": "blue",
-          "height": 120,
-          "left": 215,
-          "top": 100,
-          "width": 198
-        }
-      }
-    },
-    ...
-  ]
+"rooms_image": "/images/layout.jpg",
+"rooms": [
+{
+"name": "Bedroom",
+"areas": {
+"bedroom": {
+"color": "blue",
+"height": 120,
+"left": 215,
+"top": 100,
+"width": 198
+}
+}
+},
+{
+"name": "Kitchen",
+"areas": {
+"kitchen": {
+"color": "green",
+"height": 197,
+"left": 218,
+"top": 220,
+"width": 195
+}
+}
+},
+{
+"name": "Living Room",
+"areas": {
+"livingroom": {
+"color": "red",
+"height": 315,
+"left": 413,
+"top": 100,
+"width": 200
+}
+}
+}
+]
+}
+
+This user  locks a specific house for a user session. It prevents others from selecting the same house for a specified period of time.
+
+If the house is already locked by another session, it responds with an error message.
+
+If the house is not locked, it locks the house for the current session and stores the lock details in the database (including locked_by and locked_at fields).
+
+{
+    "status": "ok",
+    "session_id": "session123",
+    "house_id": "1",
+    "locked_at": "2025-02-01 12:00:00"
+    "locked_by" : "session_id"
 }
 
 
-3.GET /room-data
-Fetches detailed information for a specific room in a house.
 
-Expected Parameters: house_id,room_name,session_id
-|
-User Interaction:
-Once the user selects a room, the frontend requests detailed information about that room (such as available color options).
 
+3. GET method for Rooms
+
+excepted parameters on house_id and session_id and roomName.
+
+User Interaction: When the RoomPage component is loaded, it will make a GET request to the backend using this link
+(`http://localhost:5000/room-data_dev?house_id=${houseId}&session_id=${sessionId}&room_name=${roomName}`).
+const response = await fetch(`http://localhost:5000/room-data_dev?house_id=${houseId}&session_id=${sessionId}&room_name=${roomName}`);#This sends
+an HTTP GET request to the backend, asking for the rooms information for the house.
+when the frontend makes request it fetches the rooms of a specific houses from the API @app.route('/room-data_dev', methods=['GET']) database.
+Fetching Data: Inside the useEffect hook, the code calls the fetchroomData function to fetch the room data from the backend.
 Purpose:
-
-Display room-specific information such as available color options and images.
-Allow users to select customizations for the room.
+RoomPage allows users to view and customize a specific room within a house. The user can select different color options for categories
+in the room, means wall color, wardrobe color etc, and these preferences are sent to backend.
 
 Response:
 {
-  "images": [
-    {
-      "key": "wall_colors",
-      "label": "Wall Colors",
-      "colors": [
-        {
-          "color": "#afdc8b",
-          "image": "/images/H2 Living Room Wall Green.jpg"
-        },
-        ...
-      ],
-      "selected_color": "#d3c5ff"
-    },
-    ...
-  ],
-  "image_path": "/images/LivingRoom.jpg",  // Image of the room
-  "room_name": "Living Room"  // Name of the selected room
+"images": [
+{
+"color_categories": [
+{
+"colors": [
+{
+"color": "#afdc8b",
+"image": "/images/H2 Living Room Wall Green.jpg"
+},
+{
+"color": "#d3c5ff",
+"image": "/images/H2 Living Room Wall Purple.jpg"
+},
+{
+"color": "#93ece8",
+"image": "/images/H2 Living Room Wall SkyBlue.jpg"
+}
+],
+"key": "wall_colors",
+"label": "Wall Colors",
+"selected_color": "#d3c5ff"
+},
+{
+"colors": [
+{
+"color": "#eed725",
+"image": "/images/H2 Living Room Ceiling Yellow.jpg"
+},
+{
+"color": "#ffaead",
+"image": "/images/H2 Living Room Ceiling Pink.jpg"
+},
+{
+"color": "#ffaf5d",
+"image": "/images/H2 Living Room Ceiling Orange.jpg"
+}
+],
+"key": "ceiling_colors",
+"label": "Ceiling Colors",
+"selected_color": "#ffaead"
+}
+],
+"image_path": "/images/LivingRoom.jpg"
+}
+],
+"room_name": "Living Room"
 }
 
-4.POST /select-room
-Allows users to save their room customization preferences.
+4. POST /select-room - Update Room Preferences
 
-Expected Parameters: house_id,room_name,selected_rooms,preferences.
+Expected Parameters: session_id, house_id , selected_rooms
 
 User Interaction:
-After selecting preferences for various rooms (e.g., wall color, wardrobe color), the frontend sends this data to the backend to save the user's selections.
+-> The user is presented with a room interface, where they can select various rooms and customize their preferences.
+-> Upon selecting their preferred choices, the frontend will send a request to the backend to update the preferences for the selected room.
+Sending Request:
+-> The frontend then sends a POST request to the backend with @app.route('/select-room', methods=['POST']) the following data:
+- house_id: The ID of the selected house.
+- session_id: The ID of the user session.
+- selected_rooms: A list of rooms the user has selected.
+- preferences: The user's selected preferences (such as colors or other preferences for the rooms).
+When the backend receives the POST request, it performs the following steps:
+-> Session Handling:The backend extracts the session_id and verifies it to ensure that the request comes from a valid user session.
+-> Room Selection and Preferences Update: The backend receives the house_id, session_id, selected_rooms, and preferences.
+-> Database Update: The selected_rooms and preferences are stored in the database using the provided session_id and house_id.
 
-Purpose:
-Save the user's selected room preferences in the database.
-Ensure that the preferences are associated with the correct house and session.
+Expected Output (Payload):
 
-Request Payload:
+{house_id: "house-001", session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c",…}
+house_id: "house-001"
+preferences: {cabinet_colors: "#ef90d0"}
+cabinet_colors: "ef90d0"
+selected_rooms: ["Kitchen"]:
+0 :"Kitchen"
+session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c"
+
+response:
 {
-  "house_id": "house-001",  // ID of the house being customized
-  "session_id": "session-001",  // Session ID
-  "selected_rooms": ["Bedroom", "Living Room"],  // List of rooms selected
-  "preferences": {  // Customization preferences
-    "wall_colors": "#00FF00",
-    "wardrobe_colors": "#800080"
-  }
-}
+"message": "Room selection updated successfully"
 
-
-Response:
 {
-  "message": "Room selection updated successfully",
-  "house_id": "house-001",
-  "session_id": "session-001",
-  "selected_rooms": ["Bedroom", "Living Room"],
-  "preferences": {
-    "wall_colors": "#00FF00",
-    "wardrobe_colors": "#800080"
-  }
+"house_id": "house-002",
+"session_id": "sfafgagfafasffsa",
+"preferences": {
+"wall_colors": "#ffaf5d",
+"ceiling_colors": "#eed725"
+},
+"selected_rooms": [
+"Living Room"
+]
 }
-
+}
 
 
 
