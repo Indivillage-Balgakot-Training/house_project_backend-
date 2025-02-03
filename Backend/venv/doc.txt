@@ -190,7 +190,6 @@ Totally 2 Collection
 Fetches a list of all available houses (unlocked).
 
 Expected Parameters:
-
 session_id
 
 User Interaction:
