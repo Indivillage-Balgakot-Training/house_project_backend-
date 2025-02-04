@@ -289,10 +289,10 @@ If the house is not locked, it locks the house for the current session and store
 
 {
     "status": "ok",
-    "session_id": "session123",
-    "house_id": "1",
+    "session_id": "e8d85942-e559-446c-9943-36593fe4f91e",
+    "house_id": "house-001",
     "locked_at": "2025-02-01 12:00:00"
-    "locked_by" : "session_id"
+    "locked_by" : "e8d85942-e559-446c-9943-36593fe4f91e"
 }
 
 
@@ -369,12 +369,14 @@ Expected Parameters: session_id, house_id , selected_rooms
 User Interaction:
 -> The user is presented with a room interface, where they can select various rooms and customize their preferences.
 -> Upon selecting their preferred choices, the frontend will send a request to the backend to update the preferences for the selected room.
+
 Sending Request:
 -> The frontend then sends a POST request to the backend with @app.route('/select-room', methods=['POST']) the following data:
 - house_id: The ID of the selected house.
 - session_id: The ID of the user session.
 - selected_rooms: A list of rooms the user has selected.
 - preferences: The user's selected preferences (such as colors or other preferences for the rooms).
+
 When the backend receives the POST request, it performs the following steps:
 -> Session Handling:The backend extracts the session_id and verifies it to ensure that the request comes from a valid user session.
 -> Room Selection and Preferences Update: The backend receives the house_id, session_id, selected_rooms, and preferences.
@@ -382,29 +384,16 @@ When the backend receives the POST request, it performs the following steps:
 
 Expected Output (Payload):
 
-{house_id: "house-001", session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c",…}
-house_id: "house-001"
-preferences: {cabinet_colors: "#ef90d0"}
-cabinet_colors: "ef90d0"
-selected_rooms: ["Kitchen"]:
-0 :"Kitchen"
-session_id: "c6222e6a-12d3-4643-96a4-d9df5da5646c"
-
-response:
 {
-"message": "Room selection updated successfully"
-
-{
-"house_id": "house-002",
-"session_id": "sfafgagfafasffsa",
-"preferences": {
-"wall_colors": "#ffaf5d",
-"ceiling_colors": "#eed725"
-},
-"selected_rooms": [
-"Living Room"
-]
-}
+      "house_id": "house-002",
+      "session_id": "sfafgagfafasffsa",
+      "preferences": {
+      "wall_colors": "#ffaf5d",
+      "ceiling_colors": "#eed725"
+  },
+     "selected_rooms": [
+     "Living Room"
+  ]
 }
 
 
