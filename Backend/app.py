@@ -125,11 +125,14 @@ def get_houses():
         # In case of any unexpected errors, return a 500 error with a message
         return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
-# Route to get the layout of a specific house by its ID (with locking)
 @app.route('/rooms/<house_id>', methods=['GET'])
 def get_layout(house_id):
     try:
-        session_id = request.cookies.get('session_id')   # Get the session ID from cookies or generate a new one
+        # Get session ID from cookies or generate a new one
+        session_id = request.cookies.get('session_id')
+        
+        if not session_id:
+            session_id = get_session_id()  # Generate new session ID if not present
 
         # Fetch the house from the database
         house = mongo.db.houses.find_one({"house_id": house_id})
@@ -145,13 +148,13 @@ def get_layout(house_id):
             locked_by = house.get('locked_by')
             locked_at = house.get('locked_at')
 
-            # Check if the lock is expired (1 minutes here, adjust if needed)
+            # Check if the lock is expired (1 minute here, adjust if needed)
             if locked_at:
                 if locked_at.tzinfo is None:
                     locked_at = locked_at.replace(tzinfo=timezone.utc)  # Ensure the locked_at is timezone-aware
 
                 locked_duration = datetime.now(timezone.utc) - locked_at
-                if locked_duration > timedelta(minutes=15):  # Unlock if more than 1 minutes
+                if locked_duration > timedelta(minutes=1):  # Unlock if more than 15 minutes
                     # Unlock the house automatically if the session is expired
                     mongo.db.houses.update_one(
                         {"house_id": house_id},
@@ -159,9 +162,9 @@ def get_layout(house_id):
                     )
                     print(f"Lock expired for house {house_id}, unlocking it.")  # Debugging log
 
-            # If the house is still locked by another session, return an error
+            # Allow users to view the layout even if it's locked by another session
             if locked_by and locked_by != session_id:
-                return jsonify({"error": "This house is already locked by another user"}), 400
+                print(f"The house is locked by another session, but you can still view the layout.")
 
         # If the house is not locked or is locked by the same session, lock it for the current session
         locked_at = datetime.now(timezone.utc)  # Set lock time to current UTC time
@@ -203,8 +206,12 @@ def get_layout(house_id):
 
             layout_response["rooms"].append(room_data)
 
-        # Return the house layout data after locking it for the session
-        return jsonify(layout_response), 200  # Return the layout
+        # Set the session cookie if it's not already set
+        response = make_response(jsonify(layout_response), 200)
+        if not request.cookies.get('session_id'):
+            response.set_cookie('session_id', session_id, max_age=timedelta(days=30), httponly=True, secure=False)
+
+        return response
 
     except Exception as e:
         print(f"Error: {str(e)}")  # Debugging log
