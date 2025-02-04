@@ -79,12 +79,15 @@ def unlock_house(house_id):
                     {"$set": {"locked": False, "locked_by": None, "locked_at": None}}
                 )
 
-# Route to get the list of houses (and unlock expired ones)
 @app.route('/houses', methods=['GET'])
 def get_houses():
     try:
         # Get session ID from cookies or generate a new one
         session_id = request.cookies.get('session_id') 
+
+        if not session_id:
+            # Generate a new session ID if not present
+            session_id = get_session_id()
 
         houses_collection = mongo.db.houses  # Access MongoDB's 'houses' collection
         all_houses = houses_collection.find()  # Get all houses from the database
@@ -109,7 +112,14 @@ def get_houses():
         if not house_list:
             return jsonify({"status": "error", "message": "No available houses"}), 404
 
-        return jsonify(house_list), 200  # Return the list of available houses
+        # Prepare the response with the house list
+        response = make_response(jsonify(house_list), 200)
+
+        # Set the session cookie if it's not already set
+        if not request.cookies.get('session_id'):
+            response.set_cookie('session_id', session_id, max_age=timedelta(days=30), httponly=True, secure=False)
+
+        return response
 
     except Exception as e:
         # In case of any unexpected errors, return a 500 error with a message
@@ -141,7 +151,7 @@ def get_layout(house_id):
                     locked_at = locked_at.replace(tzinfo=timezone.utc)  # Ensure the locked_at is timezone-aware
 
                 locked_duration = datetime.now(timezone.utc) - locked_at
-                if locked_duration > timedelta(minutes=1):  # Unlock if more than 1 minutes
+                if locked_duration > timedelta(minutes=15):  # Unlock if more than 1 minutes
                     # Unlock the house automatically if the session is expired
                     mongo.db.houses.update_one(
                         {"house_id": house_id},
