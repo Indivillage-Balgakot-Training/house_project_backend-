@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 from flask_pymongo import PyMongo
 import os
+import logging
 
 # Initialize the Flask app and configure MongoDB URI
 app = Flask(__name__)
@@ -213,11 +214,6 @@ def get_layout(house_id):
     except Exception as e:
         print(f"Error: {str(e)}")  # Debugging log
         return jsonify({"error": str(e)}), 500  # Handle errors
-
-
-from flask import request, jsonify, make_response
-from datetime import timedelta
-import logging
 
 # Route to get room data based on house ID and room name
 @app.route('/room-data', methods=['GET'])
