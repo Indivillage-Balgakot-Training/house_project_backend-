@@ -189,8 +189,6 @@ Totally 2 Collection
 
 1. GET method for houses
 
-Expected Parameters:
-session_id
 
 User Interaction: When the GalleryPage component is loaded, it will make a GET request to the backend using this HTTP link(http://127.0.0.1:5000/houses).
 const response = await fetch('http://127.0.0.1:5000/houses'); #This sends an HTTP GET request to the backend, asking for the house data.
@@ -220,7 +218,7 @@ excepted output (Response):
 
 2.GET method for Layout - Used to get the layout image for a specific house
 
-excepted parameters on house_id and session_id.
+excepted parameters: house_id;
 
 User Interaction: When the LayoutPage component is loaded, it will make a GET request to the backend (`http://localhost:5000/rooms/${houseId}`).
 const layoutResponse = await fetch(`http://localhost:5000/rooms/${houseId}`); #This sends an HTTP GET request to the backend, asking for the layout
@@ -287,12 +285,10 @@ If the house is already locked by another session, it responds with an error mes
 
 If the house is not locked, it locks the house for the current session and stores the lock details in the database (including locked_by and locked_at fields).
 
+Response
 {
     "status": "ok",
-    "session_id": "e8d85942-e559-446c-9943-36593fe4f91e",
-    "house_id": "house-001",
-    "locked_at": "2025-02-01 12:00:00"
-    "locked_by" : "e8d85942-e559-446c-9943-36593fe4f91e"
+
 }
 
 
@@ -300,11 +296,11 @@ If the house is not locked, it locks the house for the current session and store
 
 3. GET method for Rooms
 
-excepted parameters on house_id and session_id and roomName.
+excepted parameters on house_id  and roomName.
 
 User Interaction: When the RoomPage component is loaded, it will make a GET request to the backend using this link
-(`http://localhost:5000/room-data_dev?house_id=${houseId}&session_id=${sessionId}&room_name=${roomName}`).
-const response = await fetch(`http://localhost:5000/room-data_dev?house_id=${houseId}&session_id=${sessionId}&room_name=${roomName}`);#This sends
+(`http://localhost:5000/room-data?house_id=${houseId}&room_name=${roomName}`).
+const response = await fetch(`http://localhost:5000/room-data_dev?house_id=${houseId}&room_name=${roomName}`);#This sends
 an HTTP GET request to the backend, asking for the rooms information for the house.
 when the frontend makes request it fetches the rooms of a specific houses from the API @app.route('/room-data_dev', methods=['GET']) database.
 Fetching Data: Inside the useEffect hook, the code calls the fetchroomData function to fetch the room data from the backend.
@@ -395,7 +391,7 @@ Expected Output (Payload):
      "Living Room"
   ]
 }
-
+//
 
 
 
