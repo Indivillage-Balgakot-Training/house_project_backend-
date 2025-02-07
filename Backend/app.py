@@ -216,11 +216,13 @@ def get_layout(house_id):
         return jsonify({"error": str(e)}), 500  # Handle errors
 
 # Route to get room data based on house ID and room name
+
+
 @app.route('/room-data', methods=['GET'])
 def get_room_data():
     try:
         # Get session ID from cookies or generate a new one
-        session_id = request.cookies.get('session_id') or get_session_id()
+        session_id = get_session_id()   # This will retrieve the session ID
 
         # Get query parameters for house ID and room name
         house_id = request.args.get('house_id')
@@ -230,10 +232,11 @@ def get_room_data():
         if not house_id or not session_id or not room_name:
             return jsonify({"status": "error", "message": "Missing house_id, session_id, or room_name"}), 400
 
-        # Clean room_name to avoid unwanted characters like newline
+        house_id = house_id.strip()
         room_name = room_name.strip()
 
-        houses_collection = mongo.db.houses  # Reference to MongoDB 'houses' collection
+        # Access the MongoDB 'houses' collection
+        houses_collection = mongo.db.houses
         house = houses_collection.find_one({"house_id": house_id})
 
         if not house:  # If house not found
@@ -260,14 +263,14 @@ def get_room_data():
         images = []
         available_selections = []
 
-        # Check if the room data has color categories
+        # Handle color categories and ensure correct format
         if 'color_categories' in room_data:
-            for category, color_data in room_data.get('color_categories', {}).items():
+            for category in room_data['color_categories']:
                 color_category = {
-                    "key": category,
-                    "label": color_data['label'],
-                    "colors": [{"color": color['color']} for color in color_data['colors']],
-                    "selected_color": color_data.get('selected_color', None)
+                    "key": category.get('key'),
+                    "label": category.get('label'),
+                    "colors": category.get('colors', []),
+                    "selected_color": category.get('selected_color', None)
                 }
                 images.append(color_category)
 
@@ -295,24 +298,26 @@ def get_room_data():
         logging.error(f"Error in get_room_data: {str(e)}")
         return jsonify({"status": "error", "message": "An unexpected error occurred"}), 500
 
+
+    
 @app.route('/select-room', methods=['POST'])
 def select_room():
     try:
-        # Get session ID from cookies
-        session_id = request.cookies.get('session_id')
-        print("Session ID in /select-room: ", session_id)
+        # Get session ID from cookies (or wherever it’s stored)
+        session_id = get_session_id()
 
         # Get data from the request body (JSON)
         data = request.get_json()
         house_id = data.get('house_id')
         selected_rooms = data.get('selected_rooms')
+        preferences = data.get('preferences')
 
-        # Debug output for the received data
-        print("Request Data: ", data)
-        print("Session ID: ", session_id)
+        # Check if all necessary fields are provided
+        if not house_id or not session_id or not selected_rooms or not preferences:
+            return jsonify({"status": "error", "message": "Missing house_id, session_id, selected_rooms, or preferences"}), 400
 
-        if not house_id or not selected_rooms:
-            return jsonify({"status": "error", "message": "Missing house_id or selected_rooms"}), 400
+        if not isinstance(selected_rooms, list):
+            return jsonify({"status": "error", "message": "selected_rooms must be a list"}), 400
 
         # Reference to MongoDB 'houses' collection
         houses_collection = mongo.db.houses
@@ -321,8 +326,10 @@ def select_room():
         if not house:  # If house not found
             return jsonify({"status": "error", "message": "House not found"}), 404
 
+        # Check if the house is locked and validate session ID
         locked_by = house.get("locked_by")
         if not locked_by:
+            # If the house is not locked, lock it for the current session
             houses_collection.update_one(
                 {"house_id": house_id},
                 {"$set": {"locked_by": session_id}}
@@ -331,33 +338,37 @@ def select_room():
 
         # Ensure the house is locked by the current session before making selections
         if locked_by != session_id:
-            return jsonify({"status": "error", "message": "House is not locked by your session"}), 400
+            return jsonify({"status": "error", "message": "House is locked by another session"}), 403
 
-        # Create the user selection data structure
-        user_selection = {
-            "house_id": house_id,
-            "session_id": session_id,
-            "selected_rooms": selected_rooms,
-            "locked": False,  # Assuming the house is unlocked for this user
-            "locked_at": None  # No lock timestamp initially
-        }
+        # Prepare the update data for selected rooms and preferences
+        room_preferences = {}
 
-        # Save the user selection in the 'user_selection' collection
-        mongo.db.user_selection.update_one(
-            {"house_id": house_id, "session_id": session_id},
-            {"$set": user_selection},
-            upsert=True  # Create a new record if it doesn't exist
+        # If preferences are room-specific, update for each selected room
+        for room in selected_rooms:
+            if room in preferences:
+                room_preferences[room] = preferences[room]
+            else:
+                return jsonify({"status": "error", "message": f"Preferences for room {room} are missing"}), 400
+
+        # Update the house document with the selected rooms and preferences for the session
+        houses_collection.update_one(
+            {"house_id": house_id},
+            {"$set": {
+                "selected_rooms": selected_rooms,
+                "preferences": room_preferences,  # Save preferences by room
+                "locked_by": session_id
+            }}
         )
 
         return jsonify({
-            "message": "Room selection updated successfully",
-            "house_id": house_id,
-            "session_id": session_id,
-            "selected_rooms": selected_rooms
+            "status": "success",
         }), 200
 
     except Exception as e:
-        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
+        # Log the error for debugging purposes
+        logging.error(f"Error in select_room: {str(e)}")
+        return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
+
 
 
 # Run the Flask app (start the server)
