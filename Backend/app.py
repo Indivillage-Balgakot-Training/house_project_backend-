@@ -1,12 +1,14 @@
-from flask import Flask, request, jsonify, session, make_response
-import uuid
+from flask import Flask, request, jsonify, make_response, session
 from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 from flask_pymongo import PyMongo
 import os
+import uuid
+import logging
 
 # Initialize the Flask app and configure MongoDB URI
 app = Flask(__name__)
+
 # Connect to MongoDB database using URI
 app.config["MONGO_URI"] = "mongodb+srv://Balgakot_app_training:SBhQqTzY7Go7sEXJ@validationapp.63rbg.mongodb.net/Dev_training?retryWrites=true&w=majority"
 mongo = PyMongo(app)
@@ -22,24 +24,32 @@ app.config.update(
     SESSION_COOKIE_NAME='session_id',  # Cookie name for session ID
     SESSION_COOKIE_HTTPONLY=True,  # Prevent client-side scripts from accessing cookie
     PERMANENT_SESSION_LIFETIME=timedelta(days=30),  # Session duration
-    SESSION_COOKIE_DOMAIN='.localhost',  # Allow cookies from localhost domain
-    SESSION_COOKIE_SAMESITE='None',  # Enable cross-site requests for the session cookie
-    SESSION_COOKIE_SECURE=False  # Disable secure flag for cookies (for testing purposes)
+    SESSION_COOKIE_DOMAIN='localhost',  # Cookie valid only for localhost
+    SESSION_COOKIE_SAMESITE='None',  # Enable cross-site requests for session cookie
+    SESSION_COOKIE_SECURE=False,  # Disable secure flag for cookies (for local testing)
+    SECRET_KEY='indivillage',  # Necessary for session management
 )
 
 def get_session_id():
-    session_id = request.cookies.get('session_id')  # Get session ID from cookies
+    # Check if session ID is already present in Flask session object
+    if 'session_id' in session:
+        return session['session_id']  # Return session ID from Flask session
+    
+    # Get session ID from cookies if it exists
+    session_id = request.cookies.get('session_id')
     if session_id:
-        return session_id  # Return the session ID if it exists
+        session['session_id'] = session_id  # Save session ID in Flask session
+        return session_id  # Return the session ID if found
     
-    # Generate a new session ID if it doesn't exist
-    new_session_id = str(uuid.uuid4())
-    response = make_response()  # Create a response object
-    response.set_cookie('session_id', new_session_id, max_age=timedelta(days=30), httponly=True, secure=False)
+    # Generate new session ID if none exists
+    new_session_id = str(uuid.uuid4())  # Generate a unique session ID
+    session['session_id'] = new_session_id  # Store it in Flask session
     
-    # Ensure the session ID is set in the cookies for future requests
-    return new_session_id
-
+    # Create a response object and set the cookie
+    response = make_response()  # Create an empty response
+    response.set_cookie('session_id', new_session_id, max_age=timedelta(days=30), httponly=True, secure=False)  # Set session cookie
+    
+    return new_session_id  # Return new session ID
 
 def lock_house(house_id, session_id):
     houses_collection = mongo.db.houses  # Access MongoDB's 'houses' collection
@@ -86,10 +96,8 @@ def unlock_house(house_id):
 @app.route('/houses', methods=['GET'])
 def get_houses():
     try:
-        session_id = request.cookies.get('session_id')  # Get session ID from cookies
-        if not session_id:
-            # If session ID is missing, generate a new one
-            session_id = get_session_id()
+        # Flask will handle session ID automatically
+        session_id = get_session_id()  # Get session ID from Flask's session
 
         houses_collection = mongo.db.houses  # Access MongoDB's 'houses' collection
         all_houses = houses_collection.find()  # Get all houses from the database
@@ -114,8 +122,9 @@ def get_houses():
         response = make_response(jsonify(house_list), 200)
 
         # Set the session cookie in response if not already set
-        if not request.cookies.get('session_id'):
-            response.set_cookie('session_id', session_id, max_age=timedelta(days=30), httponly=True, secure=False)
+        if not session_id:
+            session['session_id'] = os.urandom(24).hex()  # Generate session ID if not set
+            response.set_cookie('session_id', session['session_id'], max_age=timedelta(days=30), httponly=True, secure=False)
 
         return response
     except Exception as e:
@@ -125,21 +134,14 @@ def get_houses():
 @app.route('/rooms/<house_id>', methods=['GET'])
 def get_layout(house_id):
     try:
-        # Get session ID from cookies or generate a new one
-        session_id = request.cookies.get('session_id')
-        
-        if not session_id:
-            session_id = get_session_id()  # Generate new session ID if not present
+        # Get session ID from Flask session
+        session_id = get_session_id() 
 
         # Fetch the house from the database
         house = mongo.db.houses.find_one({"house_id": house_id})
         if not house:
             return jsonify({"error": "House not found"}), 404  # If the house doesn't exist, return error
 
-        # Debugging: Log the session ID and the locked status
-        print(f"Session ID: {session_id}")
-        print(f"House {house_id} is locked by: {house.get('locked_by')}")
-        
         # Check if the house is locked by another session
         if house.get('locked'):
             locked_by = house.get('locked_by')
@@ -147,23 +149,22 @@ def get_layout(house_id):
 
             # Check if the lock is expired (1 minute here, adjust if needed)
             if locked_at:
+                # Ensure the locked_at is timezone-aware (if not already)
                 if locked_at.tzinfo is None:
-                    locked_at = locked_at.replace(tzinfo=timezone.utc)  # Ensure the locked_at is timezone-aware
+                    locked_at = locked_at.replace(tzinfo=timezone.utc)
 
                 locked_duration = datetime.now(timezone.utc) - locked_at
-                if locked_duration > timedelta(minutes=1):  # Unlock if more than 15 minutes
+                if locked_duration > timedelta(minutes=1):  # Unlock if more than 1 minute
                     # Unlock the house automatically if the session is expired
                     mongo.db.houses.update_one(
                         {"house_id": house_id},
                         {"$set": {"locked": False, "locked_by": None, "locked_at": None}}
                     )
-                    print(f"Lock expired for house {house_id}, unlocking it.")  # Debugging log
 
-            # Allow users to view the layout even if it's locked by another session
             if locked_by and locked_by != session_id:
-                print(f"The house is locked by another session, but you can still view the layout.")
+                return jsonify({"status": "error", "message": "House is locked by another session."}), 403
 
-        # If the house is not locked or is locked by the same session, lock it for the current session
+        # Lock the house for the current session
         locked_at = datetime.now(timezone.utc)  # Set lock time to current UTC time
         mongo.db.houses.update_one(
             {"house_id": house_id},
@@ -175,8 +176,8 @@ def get_layout(house_id):
         if not house_layout:
             return jsonify({"error": "House layout not found"}), 404  # If no layout found
 
-        rooms_data = house_layout.get('rooms', {})  # Get room data from house layout
-        rooms_image = house_layout.get('rooms_image', '')  # Get room images if available
+        rooms_data = house_layout.get('rooms', {})
+        rooms_image = house_layout.get('rooms_image', '')
 
         layout_response = {
             "house_id": house_id,
@@ -191,40 +192,35 @@ def get_layout(house_id):
                 "areas": []
             }
 
+            # Ensure layout_page_details is an empty dict if not provided
             layout_page_details = room.get('layout_page_details', {})
-            if layout_page_details:
-                room_data["areas"].append({
-                    "name": room_name,
-                    **layout_page_details
-                })
+
+            room_data["areas"].append({
+                "name": room_name,
+                **layout_page_details  # Add the layout page details (or empty details if missing)
+            })
 
             if room.get('image_path'):
                 room_data["image_path"] = room.get('image_path')
 
             layout_response["rooms"].append(room_data)
 
-        # Set the session cookie if it's not already set
-        response = make_response(jsonify(layout_response), 200)
-        if not request.cookies.get('session_id'):
-            response.set_cookie('session_id', session_id, max_age=timedelta(days=30), httponly=True, secure=False)
+        # Instead of returning the full layout_response, return a simple "status": "ok"
+        response = {
+            "status": "ok"
+        }
 
-        return response
+        return make_response(jsonify(response), 200)
 
     except Exception as e:
-        print(f"Error: {str(e)}")  # Debugging log
-        return jsonify({"error": str(e)}), 500  # Handle errors
+        return jsonify({"error": str(e)}), 500
 
 
-from flask import request, jsonify, make_response
-from datetime import timedelta
-import logging
-
-# Route to get room data based on house ID and room name
 @app.route('/room-data', methods=['GET'])
 def get_room_data():
     try:
         # Get session ID from cookies or generate a new one
-        session_id = request.cookies.get('session_id') or get_session_id()
+        session_id = get_session_id()   # This will retrieve the session ID
 
         # Get query parameters for house ID and room name
         house_id = request.args.get('house_id')
@@ -234,10 +230,11 @@ def get_room_data():
         if not house_id or not session_id or not room_name:
             return jsonify({"status": "error", "message": "Missing house_id, session_id, or room_name"}), 400
 
-        # Clean room_name to avoid unwanted characters like newline
+        house_id = house_id.strip()
         room_name = room_name.strip()
 
-        houses_collection = mongo.db.houses  # Reference to MongoDB 'houses' collection
+        # Access the MongoDB 'houses' collection
+        houses_collection = mongo.db.houses
         house = houses_collection.find_one({"house_id": house_id})
 
         if not house:  # If house not found
@@ -264,14 +261,14 @@ def get_room_data():
         images = []
         available_selections = []
 
-        # Check if the room data has color categories
+        # Handle color categories and ensure correct format
         if 'color_categories' in room_data:
-            for category, color_data in room_data.get('color_categories', {}).items():
+            for category in room_data['color_categories']:
                 color_category = {
-                    "key": category,
-                    "label": color_data['label'],
-                    "colors": [{"color": color['color']} for color in color_data['colors']],
-                    "selected_color": color_data.get('selected_color', None)
+                    "key": category.get('key'),
+                    "label": category.get('label'),
+                    "colors": category.get('colors', []),
+                    "selected_color": category.get('selected_color', None)
                 }
                 images.append(color_category)
 
@@ -298,25 +295,25 @@ def get_room_data():
         # Log the error for debugging purposes
         logging.error(f"Error in get_room_data: {str(e)}")
         return jsonify({"status": "error", "message": "An unexpected error occurred"}), 500
-
+    
 @app.route('/select-room', methods=['POST'])
 def select_room():
     try:
-        # Get session ID from cookies
-        session_id = request.cookies.get('session_id')
-        print("Session ID in /select-room: ", session_id)
+        # Get session ID from cookies (or wherever it’s stored)
+        session_id = get_session_id()
 
         # Get data from the request body (JSON)
         data = request.get_json()
         house_id = data.get('house_id')
         selected_rooms = data.get('selected_rooms')
+        preferences = data.get('preferences')
 
-        # Debug output for the received data
-        print("Request Data: ", data)
-        print("Session ID: ", session_id)
+        # Check if all necessary fields are provided
+        if not house_id or not session_id or not selected_rooms or not preferences:
+            return jsonify({"status": "error", "message": "Missing house_id, session_id, selected_rooms, or preferences"}), 400
 
-        if not house_id or not selected_rooms:
-            return jsonify({"status": "error", "message": "Missing house_id or selected_rooms"}), 400
+        if not isinstance(selected_rooms, list):
+            return jsonify({"status": "error", "message": "selected_rooms must be a list"}), 400
 
         # Reference to MongoDB 'houses' collection
         houses_collection = mongo.db.houses
@@ -325,8 +322,10 @@ def select_room():
         if not house:  # If house not found
             return jsonify({"status": "error", "message": "House not found"}), 404
 
+        # Check if the house is locked and validate session ID
         locked_by = house.get("locked_by")
         if not locked_by:
+            # If the house is not locked, lock it for the current session
             houses_collection.update_one(
                 {"house_id": house_id},
                 {"$set": {"locked_by": session_id}}
@@ -335,36 +334,37 @@ def select_room():
 
         # Ensure the house is locked by the current session before making selections
         if locked_by != session_id:
-            return jsonify({"status": "error", "message": "House is not locked by your session"}), 400
+            return jsonify({"status": "error", "message": "House is locked by another session"}), 403
 
-        # Create the user selection data structure
-        user_selection = {
-            "house_id": house_id,
-            "session_id": session_id,
-            "selected_rooms": selected_rooms,
-            "locked": False,  # Assuming the house is unlocked for this user
-            "locked_at": None  # No lock timestamp initially
-        }
+        # Prepare the update data for selected rooms and preferences
+        room_preferences = {}
 
-        # Save the user selection in the 'user_selection' collection
-        mongo.db.user_selection.update_one(
-            {"house_id": house_id, "session_id": session_id},
-            {"$set": user_selection},
-            upsert=True  # Create a new record if it doesn't exist
+        # If preferences are room-specific, update for each selected room
+        for room in selected_rooms:
+            if room in preferences:
+                room_preferences[room] = preferences[room]
+            else:
+                return jsonify({"status": "error", "message": f"Preferences for room {room} are missing"}), 400
+
+        # Update the house document with the selected rooms and preferences for the session
+        houses_collection.update_one(
+            {"house_id": house_id},
+            {"$set": {
+                "selected_rooms": selected_rooms,
+                "preferences": room_preferences,  # Save preferences by room
+                "locked_by": session_id
+            }}
         )
 
         return jsonify({
-            "message": "Room selection updated successfully",
-            "house_id": house_id,
-            "session_id": session_id,
-            "selected_rooms": selected_rooms
+            "status": "success",
         }), 200
 
     except Exception as e:
-        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
+        # Log the error for debugging purposes
+        logging.error(f"Error in select_room: {str(e)}")
+        return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
 
-
-# Run the Flask app (start the server)
+    
 if __name__ == '__main__':
     app.run(debug=True)
-#code

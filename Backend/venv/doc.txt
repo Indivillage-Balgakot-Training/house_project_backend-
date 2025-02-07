@@ -117,7 +117,7 @@ Totally 2 Collection
 
             },
 
-          "avaialble_selections": <array> [],  # array of dictionaries each speficying selections available for the room
+          "availble_selections": <array> [],  # array of dictionaries each speficying selections available for the room
 
             {
 
@@ -238,46 +238,54 @@ Display room details based on user selection.
 
 Response:
 {
-"rooms_image": "/images/layout.jpg",
-"rooms": [
-{
-"name": "Bedroom",
-"areas": {
-"bedroom": {
-"color": "blue",
-"height": 120,
-"left": 215,
-"top": 100,
-"width": 198
+  "house_id": "house-002",
+  "rooms": [
+    {
+      "areas": [
+        {
+          "color": "blue",
+          "height": 120,
+          "left": 215,
+          "name": "Bedroom",
+          "top": 100,
+          "width": 198
+        }
+      ],
+      "image_path": "/images/Bed Room.jpg",
+      "name": "Bedroom"
+    },
+    {
+      "areas": [
+        {
+          "color": "green",
+          "height": 197,
+          "left": 218,
+          "name": "Kitchen",
+          "top": 220,
+          "width": 195
+        }
+      ],
+      "image_path": "/images/Kitchen img.jpg",
+      "name": "Kitchen"
+    },
+    {
+      "areas": [
+        {
+          "color": "red",
+          "height": 315,
+          "left": 413,
+          "name": "Living Room",
+          "top": 100,
+          "width": 200
+        }
+      ],
+      "image_path": "/images/LivingRoom.jpg",
+      "name": "Living Room"
+    }
+  ],
+  "rooms_image": "/images/layout.jpg"
 }
-}
-},
-{
-"name": "Kitchen",
-"areas": {
-"kitchen": {
-"color": "green",
-"height": 197,
-"left": 218,
-"top": 220,
-"width": 195
-}
-}
-},
-{
-"name": "Living Room",
-"areas": {
-"livingroom": {
-"color": "red",
-"height": 315,
-"left": 413,
-"top": 100,
-"width": 200
-}
-}
-}
-]
-}
+
 
 This user  locks a specific house for a user session. It prevents others from selecting the same house for a specified period of time.
 
@@ -310,53 +318,49 @@ in the room, means wall color, wardrobe color etc, and these preferences are sen
 
 Response:
 {
-"images": [
-{
-"color_categories": [
-{
-"colors": [
-{
-"color": "#afdc8b",
-"image": "/images/H2 Living Room Wall Green.jpg"
-},
-{
-"color": "#d3c5ff",
-"image": "/images/H2 Living Room Wall Purple.jpg"
-},
-{
-"color": "#93ece8",
-"image": "/images/H2 Living Room Wall SkyBlue.jpg"
+  "available_selections": [
+    {
+      "colors": [
+        {
+          "color": "#baaf45",
+          "image": "/images/H2 kitchen green.jpg"
+        },
+        {
+          "color": "#e39950",
+          "image": "/images/H2 kitchen orange.jpg"
+        },
+        {
+          "color": "#95a4db",
+          "image": "/images/H2 kitchen purple.jpg"
+        }
+      ],
+      "key": "cabinet_colors",
+      "label": "Cabinet Colors"
+    },
+    {
+      "colors": [
+        {
+          "color": "#b8d5d9",
+          "image": "/images/H2 Kitchen BlueWall.jpg"
+        },
+        {
+          "color": "#eec7c2",
+          "image": "/images/H2 Kitchen PinkWall.jpg"
+        },
+        {
+          "color": "#ccdac1",
+          "image": "/images/H2 Kitchen PistaWall.jpg"
+        }
+      ],
+      "key": "wall_colors",
+      "label": "Wall Colors"
+    }
+  ],
+  "image_path": "/images/Kitchen img.jpg",
+  "images": [],
+  "room_name": "Kitchen"
 }
-],
-"key": "wall_colors",
-"label": "Wall Colors",
-"selected_color": "#d3c5ff"
-},
-{
-"colors": [
-{
-"color": "#eed725",
-"image": "/images/H2 Living Room Ceiling Yellow.jpg"
-},
-{
-"color": "#ffaead",
-"image": "/images/H2 Living Room Ceiling Pink.jpg"
-},
-{
-"color": "#ffaf5d",
-"image": "/images/H2 Living Room Ceiling Orange.jpg"
-}
-],
-"key": "ceiling_colors",
-"label": "Ceiling Colors",
-"selected_color": "#ffaead"
-}
-],
-"image_path": "/images/LivingRoom.jpg"
-}
-],
-"room_name": "Living Room"
-}
+
 
 4. POST /select-room - Update Room Preferences
 
@@ -391,7 +395,12 @@ Expected Output (Payload):
      "Living Room"
   ]
 }
-//
+
+Response
+{
+    "status": "success"
+}
+
 
 
 
