@@ -308,7 +308,7 @@ excepted parameters on house_id  and roomName.
 
 User Interaction: When the RoomPage component is loaded, it will make a GET request to the backend using this link
 (`http://localhost:5000/room-data?house_id=${houseId}&room_name=${roomName}`).
-const response = await fetch(`http://localhost:5000/room-data_dev?house_id=${houseId}&room_name=${roomName}`);#This sends
+const response = await fetch(`http://localhost:5000/room-data?house_id=${houseId}&room_name=${roomName}`);#This sends
 an HTTP GET request to the backend, asking for the rooms information for the house.
 when the frontend makes request it fetches the rooms of a specific houses from the API @app.route('/room-data_dev', methods=['GET']) database.
 Fetching Data: Inside the useEffect hook, the code calls the fetchroomData function to fetch the room data from the backend.
@@ -364,7 +364,6 @@ Response:
 
 4. POST /select-room - Update Room Preferences
 
-Expected Parameters: session_id, house_id , selected_rooms
 
 User Interaction:
 -> The user is presented with a room interface, where they can select various rooms and customize their preferences.

@@ -128,6 +128,8 @@ def get_layout(house_id):
     try:
         # Get session ID from cookies or generate a new one
         session_id = request.cookies.get('session_id')
+
+        house_id = request.args.get('house_id')
         
         if not session_id:
             session_id = get_session_id()  # Generate new session ID if not present
